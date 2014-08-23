@@ -1,0 +1,21 @@
+## Main config for WorldCommander
+
+# Whether or not Op's have all the permissions.
+opHasAllPermissions: true
+
+# Whether or not Op's bypass world flags.
+opIsExcluded: false
+
+# Whether or not someone with tschrock.worldcommander.all bypasses world flags.
+worldcommander.allIsExcluded: false
+
+# The type of ban for blocks/items
+# 1 = no place/use
+# 2 = no activate/interact
+# 4 = no craft
+# 8 = no break
+# Add together the options you want. For ex. to block all the options use 1+2+4+8 = 15
+blockBanType: 15
+
+# The amount of time, in ticks, between time updates.
+timeUpdateInterval: 30

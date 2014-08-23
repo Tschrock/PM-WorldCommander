@@ -1,0 +1,90 @@
+#name, main, version and api are required
+name: WorldCommander
+main: tschrock\WorldCommander\WorldCommander
+version: 0.0.1
+api: [1.2.0]
+
+load: POSTWORLD
+author: tschrock (tschrock123@gmail.com)
+description: Command your worlds.
+website: http://www.tschrock.net
+commands:
+ wc:
+  description: Main WorldCommander command.
+  usage: "/wc <create|load|unload|flags|tp> [worldname]"
+ wcc:
+  description: Create worlds.
+  usage: "/wcc <worldname> [seed [generator [generator options]]]"
+ wcl:
+  description: Load worlds.
+  usage: "/wcl <worldname>"
+ wcu:
+  description: Unload worlds.
+  usage: "/wcu <worldname>"
+ wcf:
+  description: Manage world flags.
+  usage: "/wcf [worldname] <flag> <value>"
+ wctp:
+  description: Tp to a different world.
+  usage: "/wctp [player] <world>"
+permissions:
+ tschrock.worldcommander.all:
+  description: "Allows the user to use all WorldCommander commands."
+  default: false
+ tschrock.worldcommander.worlds:
+  description: "Allows the user to manage worlds."
+  default: false
+ tschrock.worldcommander.worlds.create:
+  description: "Allows the user to create worlds."
+  default: false
+ tschrock.worldcommander.worlds.load:
+  description: "Allows the user to load worlds."
+  default: false
+ tschrock.worldcommander.worlds.unload:
+  description: "Allows the user to unload worlds."
+  default: false
+ tschrock.worldcommander.flags:
+  description: "Allows the user to change all flags in a world."
+  default: false
+ tschrock.worldcommander.flags.exclude:
+  description: "Allows the user to bypass all flags in a world."
+  default: false
+ tschrock.worldcommander.flags.gamemode:
+  description: "Allows the user to change the gamemode flag in a world."
+  default: false
+ tschrock.worldcommander.flags.gamemode.exclude:
+  description: "Allows the user to bypass the gamemode flag in a world."
+  default: false
+ tschrock.worldcommander.flags.pvp:
+  description: "Allows the user to change the pvp flag in a world."
+  default: false
+ tschrock.worldcommander.flags.pvp.exclude:
+  description: "Allows the user to bypass the pvp flag in a world."
+  default: false
+ tschrock.worldcommander.flags.allowfire:
+  description: "Allows the user to change the allowfire flag in a world."
+  default: false
+ tschrock.worldcommander.flags.allowfire.exclude:
+  description: "Allows the user to bypass the allowfire flag in a world."
+  default: false
+ tschrock.worldcommander.flags.spawnprotection:
+  description: "Allows the user to change the spawnprotection flag in a world."
+  default: false
+ tschrock.worldcommander.flags.spawnprotection.exclude:
+  description: "Allows the user to bypass the spawnprotection flag in a world."
+  default: false
+ tschrock.worldcommander.flags.bannedblocks:
+  description: "Allows the user to change the bannedblocks flag in a world."
+  default: false
+ tschrock.worldcommander.flags.bannedblocks.exclude:
+  description: "Allows the user to bypass the bannedblocks flag in a world."
+  default: false
+ tschrock.worldcommander.flags.time:
+  description: "Allows the user to change the time flag in a world."
+  default: false
+ tschrock.worldcommander.tp:
+  description: "Allows the user to teleport to different worlds."
+  default: false
+ tschrock.worldcommander.tp.other:
+  description: "Allows the user to teleport other players to differant worlds."
+  default: false
