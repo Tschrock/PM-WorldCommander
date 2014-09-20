@@ -22,8 +22,8 @@ commands:
   description: Unload worlds.
   usage: "/wcu <worldname>"
  wcf:
-  description: Manage world flags.
-  usage: "/wcf [worldname] <flag> <value>"
+  description: Manage flags.
+  usage: "/wcf <area> <flag> <value>"
  wctp:
   description: Tp to a different world.
   usage: "/wctp [player] <world>"
@@ -48,39 +48,6 @@ permissions:
   default: false
  tschrock.worldcommander.flags.exclude:
   description: "Allows the user to bypass all flags in a world."
-  default: false
- tschrock.worldcommander.flags.gamemode:
-  description: "Allows the user to change the gamemode flag in a world."
-  default: false
- tschrock.worldcommander.flags.gamemode.exclude:
-  description: "Allows the user to bypass the gamemode flag in a world."
-  default: false
- tschrock.worldcommander.flags.pvp:
-  description: "Allows the user to change the pvp flag in a world."
-  default: false
- tschrock.worldcommander.flags.pvp.exclude:
-  description: "Allows the user to bypass the pvp flag in a world."
-  default: false
- tschrock.worldcommander.flags.allowfire:
-  description: "Allows the user to change the allowfire flag in a world."
-  default: false
- tschrock.worldcommander.flags.allowfire.exclude:
-  description: "Allows the user to bypass the allowfire flag in a world."
-  default: false
- tschrock.worldcommander.flags.spawnprotection:
-  description: "Allows the user to change the spawnprotection flag in a world."
-  default: false
- tschrock.worldcommander.flags.spawnprotection.exclude:
-  description: "Allows the user to bypass the spawnprotection flag in a world."
-  default: false
- tschrock.worldcommander.flags.bannedblocks:
-  description: "Allows the user to change the bannedblocks flag in a world."
-  default: false
- tschrock.worldcommander.flags.bannedblocks.exclude:
-  description: "Allows the user to bypass the bannedblocks flag in a world."
-  default: false
- tschrock.worldcommander.flags.time:
-  description: "Allows the user to change the time flag in a world."
   default: false
  tschrock.worldcommander.tp:
   description: "Allows the user to teleport to different worlds."
