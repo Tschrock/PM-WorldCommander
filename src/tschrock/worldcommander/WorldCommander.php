@@ -49,7 +49,7 @@ class WorldCommander extends PluginBase {
     public function __construct() {
         self::$instance = $this;
     }
-    
+
     /**
      * The onLoad function.
      */
@@ -59,6 +59,8 @@ class WorldCommander extends PluginBase {
 
         $this->inclFlags[] = new flag\GamemodeFlag($this, $this);
         $this->inclFlags[] = new flag\PvPFlag($this, $this);
+        $this->inclFlags[] = new flag\SpawnProtectionFlag($this, $this);
+        $this->inclFlags[] = new flag\TimeFlag($this, $this);
     }
 
     /**
@@ -205,36 +207,66 @@ class WorldCommander extends PluginBase {
     }
 
     public function oncommand_flags(CommandSender $sender, array $args) {
-        $area = array_shift($args);
-        if ($area == "@world" || $area == "@region") {
-            if ($sender instanceof Player && $sender->spawned) {
-                if ($area == "@world") {
-                    $area = $sender->getLevel()->getName();
-                } elseif ($area == "@region") {
-                    $regions = $this->dataProvider->getRegion($sender->getLevel()->getName(), $sender->getPosition());
-                    if (isset($regions[0])) {
-                        $area = $regions[0];
-                    } else {
-                        $sender->sendMessage("You aren't in any regions! Did you mean @world?");
-                        return;
-                    }
-                }
+        if (count($args) == 0) {
+            $sender->sendMessage("Usage: /wc flag <area> <flag> or /wc flag help");
+            $sender->sendMessage("Use '/wc flag help' for more info.");
+        } elseif (count($args) == 1) {
+            $arg = $args[0];
+            if ($arg == "help") {
+                $sender->sendMessage("'/wc flag' Commands:");
+                $sender->sendMessage("    /wc flag help    - get this help.");
+                $sender->sendMessage("    /wc flag list    - list all flags.");
+                $sender->sendMessage("    /wc flag <flag>  - get info for a flag.");
+                $sender->sendMessage("    /wc flag <area>  - get info for a world/region.");
+            } elseif ($arg == "list") {
+                Utilities::sendSplitMessage($sender, ""
+                        . "Available flags:\n"
+                        . $this->getFlagHelper()->getHelp()
+                );
             } else {
-                $sender->sendMessage("You can only use @world/@region in-game.");
+                if (Utilities::doesWorldExist($arg)) {
+                    $sender->sendMessage("World '$arg' has " . count($this->getDataProvider()->getWorldFlags($arg)) . " flags set.");
+                } elseif ($this->getDataProvider()->isRegion($arg)) {
+                    $sender->sendMessage("Region '$arg' has " . count($this->getDataProvider()->getRegionFlag($arg)) . " flags set.");
+                } elseif ($this->getFlagHelper()->getFlag($arg) != false) {
+                    $sender->sendMessage($this->getFlagHelper()->getHelp($arg));
+                } else {
+                    $sender->sendMessage("Usage: /wc flag <area> <flag> or /wc flag help");
+                }
+            }
+        } elseif (count($args) >= 2) {
+
+            $area = array_shift($args);
+            if ($area == "@world" || $area == "@region") {
+                if ($sender instanceof Player && $sender->spawned) {
+                    if ($area == "@world") {
+                        $area = $sender->getLevel()->getName();
+                    } elseif ($area == "@region") {
+                        $regions = $this->dataProvider->getRegion($sender->getLevel()->getName(), $sender->getPosition());
+                        if (isset($regions[0])) {
+                            $area = $regions[0];
+                        } else {
+                            $sender->sendMessage("You aren't in any regions! Did you mean @world?");
+                            return;
+                        }
+                    }
+                } else {
+                    $sender->sendMessage("You can only use @world/@region in-game.");
+                    return;
+                }
+            }
+
+            if (!$this->dataProvider->isValidArea($area)) {
+                $sender->sendMessage("'$area' isn't a valid area! It must be a world or region.");
                 return;
             }
-        }
 
-        if (!$this->dataProvider->isValidArea($area)) {
-            $sender->sendMessage("'$area' isn't a valid area! It must be a world or region.");
-            return;
-        }
-
-        if (($iflag = $this->flagHelper->getFlag(array_shift($args))) !== false) {
-            $iflag->handleCommand($sender, $area, $args);
-        } else {
-            $sender->sendMessage("That flag doesn't exist.");
-            return;
+            if (($iflag = $this->flagHelper->getFlag(array_shift($args))) !== false) {
+                $iflag->handleCommand($sender, $area, $args);
+            } else {
+                $sender->sendMessage("That flag doesn't exist.");
+                return;
+            }
         }
     }
 

@@ -36,7 +36,7 @@ class TimeFlag extends Flag {
     }
     
     public function onEnable() {
-        Server::getInstance()->getScheduler()->scheduleRepeatingTask(new TimeFlagTask($this), $this->owner->getConfig()->get(Utilities::CONFIG_TIME));
+        Server::getInstance()->getScheduler()->scheduleRepeatingTask(new TimeFlagTask($this->owner, $this), $this->owner->getConfig()->get(Utilities::CONFIG_TIME));
     }
     
 

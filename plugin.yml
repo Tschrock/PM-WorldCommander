@@ -1,8 +1,8 @@
 #name, main, version and api are required
 name: WorldCommander
-main: tschrock\WorldCommander\WorldCommander
-version: 0.0.1
-api: [1.2.0]
+main: tschrock\worldcommander\WorldCommander
+version: 0.1.0
+api: [1.4.0]
 
 load: POSTWORLD
 author: tschrock (tschrock123@gmail.com)

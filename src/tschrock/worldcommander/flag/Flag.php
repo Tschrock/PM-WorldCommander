@@ -86,8 +86,12 @@ class Flag implements iFlag
         return null;
     }
 
-    public function onDisable();
+    public function onDisable(){
+        
+    }
 
-    public function onEnable();
+    public function onEnable(){
+        
+    }
 
 }

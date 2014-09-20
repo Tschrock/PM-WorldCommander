@@ -36,11 +36,13 @@ class FlagManager {
     public function registerFlag(iFlag $flag) {
         $this->flags[$flag->getName()] = $flag;
         $flag->onEnable();
+        $this->wCommander->getLogger()->info("registered flag: " . $flag->getName());
     }
 
     public function unregisterFlag($flag) {
         $iflag = $this->getFlag($flag);
         $this->flags[$iflag->getName()]->onDisable();
+        $this->wCommander->getLogger()->info("unregistered flag: " . $flag->getName());
         unset($this->flags[$iflag->getName()]);
     }
 
@@ -75,17 +77,19 @@ class FlagManager {
         }
     }
 
-    public function getHelp($flag = false) {
+    public function getHelp($flag = false, $short = false) {
         if ($flag === false) {
             $rtn = "";
             foreach ($this->flags as $iflag) {
                 if ($iflag instanceof iFlag) {
-                    $rtn .= $this->getHelp($iflag) . "\n";
+                    $rtn .= $this->getHelp($iflag, true) . "\n";
                 }
             }
             return $rtn;
         } elseif (($iflag = $this->getFlag($flag)) instanceof iFlag) {
-            return str_pad("/wc flag <world> " . $iflag->getUsage(), 30) . "  - " . $iflag->getDescription();
+            $rtn = "/wc flag <world> " . $iflag->getUsage();
+            $rtn .= $short ? "" : "\n  - " . $iflag->getDescription();
+            return $rtn;
         }
     }
 
@@ -120,15 +124,15 @@ class FlagManager {
         $rtn = null;
         
         if ($area instanceof Position) {
-            $regions = $this->wCommander->getDataProvider()->getRegion($position->level->getName(), $position);
+            $regions = $this->wCommander->getDataProvider()->getRegion($area->level->getName(), $position);
 
             if ($regions != null) {
                 $rtn = $this->wCommander->getDataProvider()->getRegionFlag(array_shift($regions), $iflag->getName());
             } else {
-                $rtn = $this->wCommander->getDataProvider()->getWorldFlag($position->level->getName(), $iflag->getName());
+                $rtn = $this->wCommander->getDataProvider()->getWorldFlag($area->level->getName(), $iflag->getName());
             }
         } else {
-            $regions = $this->wCommander->getDataProvider()->getRegion($area, $position);
+            $regions = $this->wCommander->getDataProvider()->getRegion($area);
 
             if ($regions != null) {
                 $rtn = $this->wCommander->getDataProvider()->getRegionFlag(array_shift($regions), $iflag->getName());

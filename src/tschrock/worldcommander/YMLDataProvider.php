@@ -1,4 +1,4 @@
- <?php
+<?php
 
 namespace tschrock\worldcommander;
 
@@ -12,14 +12,12 @@ use pocketmine\level\Position;
  * @author tyler
  * @
  */
-class YMLDataProvider
-{
+class YMLDataProvider {
 
     protected $worldConfig = false;
     protected $dataFile;
 
-    public function __construct($dataFile)
-    {
+    public function __construct($dataFile) {
         $this->dataFile = $dataFile;
     }
 
@@ -28,8 +26,7 @@ class YMLDataProvider
      * 
      * @return Config
      */
-    public function getWCConfig()
-    {
+    public function getWCConfig() {
         if ($this->worldConfig === false) {
             $this->worldConfig = new Config($this->dataFile, Config::YAML, array(
                 "_WORLDS" => array(),
@@ -44,9 +41,8 @@ class YMLDataProvider
      * 
      * @return array An array containing the data for each world.
      */
-    public function getAllWorldData()
-    {
-        return $this->getWCConfig()["_WORLDS"];
+    public function getAllWorldData() {
+        return $this->getWCConfig()->get("_WORLDS");
     }
 
     /**
@@ -55,9 +51,9 @@ class YMLDataProvider
      * @param string $world The world to get the data from.
      * @return array An array containing the world's data.
      */
-    public function getWorldData($world)
-    {
-        return $this->getAllWorldData()[$world];
+    public function getWorldData($world) {
+        $worldData = $this->getAllWorldData();
+        return self::safeArrayGet($worldData, $world);
     }
 
     /**
@@ -65,9 +61,8 @@ class YMLDataProvider
      * 
      * @return array An array containing the flags for each world.
      */
-    public function getAllWorldFlags()
-    {
-        return getAllWorldData();
+    public function getAllWorldFlags() {
+        return $this->getAllWorldData();
     }
 
     /**
@@ -76,9 +71,8 @@ class YMLDataProvider
      * @param string $world The world to get the flags from.
      * @return array An array containing the world's flags.
      */
-    public function getWorldFlags($world)
-    {
-        return getWorldData($world);
+    public function getWorldFlags($world) {
+        return $this->getWorldData($world);
     }
 
     /**
@@ -88,9 +82,9 @@ class YMLDataProvider
      * @param string $flag The flag to get the data from.
      * @return mixed The data from the flag.
      */
-    public function getWorldFlag($world, $flag)
-    {
-        return getWorldFlags($world)[$flag];
+    public function getWorldFlag($world, $flag) {
+        $worldFlags = $this->getWorldFlags($world);
+        return self::safeArrayGet($worldFlags, $flag);
     }
 
     /**
@@ -101,10 +95,10 @@ class YMLDataProvider
      * @param string $value The data to store in the flag.
      * @return void
      */
-    public function setWorldFlag($world, $flag, $value)
-    {
-        $fg = & self::checkArrayKey(& self::checkArrayKey($this->getWCConfig(), "_WORLDS")["_WORLDS"], $world)[$world];
-        $fg[$flag] = $value;
+    public function setWorldFlag($world, $flag, $value) {
+        $allWorldData = $this->getAllWorldData();
+        $allWorldData[$world][$flag] = $value;
+        $this->getWCConfig()->set("_WORLDS", $allWorldData);
         $this->getWCConfig()->save();
     }
 
@@ -118,24 +112,45 @@ class YMLDataProvider
      * @param Vector3 $location The location.
      * @return array An array of the name(s) of all of the region(s) at the location.
      */
-    public function getRegion($world, Vector3 $location)
-    {
-        $regions = $this->getAllRegionData();
-        $rtn = array();
+    public function getRegion($world, Vector3 $location = null) {
+        if ($world instanceof Position) {
+            $location = $world;
+            $world = $world->getLevel();
+        }
 
-        foreach ($regions as $region => $flags) {
-            if ($flags["R_WORLD"] == $world) {
-                if (Utilities::isBetween($location->x, $flags["R_POS1_X"], $flags["R_POS2_X"]) ||
-                        Utilities::isBetween($location->y, $flags["R_POS1_Y"], $flags["R_POS2_Y"]) ||
-                        Utilities::isBetween($location->z, $flags["R_POS1_Z"], $flags["R_POS2_Z"])) {
+        if ($location != null) {
+
+            $regions = $this->getAllRegionData();
+            $rtn = array();
+
+            foreach ($regions as $region => $flags) {
+                if ($flags["R_WORLD"] == $world) {
+                    if (Utilities::isBetween($location->x, $flags["R_POS1_X"], $flags["R_POS2_X"]) ||
+                            Utilities::isBetween($location->y, $flags["R_POS1_Y"], $flags["R_POS2_Y"]) ||
+                            Utilities::isBetween($location->z, $flags["R_POS1_Z"], $flags["R_POS2_Z"])) {
+                        $rtn[$region] = $flags["R_PRIORITY"];
+                    }
+                }
+            }
+
+            asort($rtn, SORT_NUMERIC);
+
+            return array_keys($rtn);
+        }
+        else {
+            $regions = $this->getAllRegionData();
+            $rtn = array();
+
+            foreach ($regions as $region => $flags) {
+                if (strpos($region, $world) !== false){
                     $rtn[$region] = $flags["R_PRIORITY"];
                 }
             }
+            
+            asort($rtn, SORT_NUMERIC);
+
+            return array_keys($rtn);
         }
-
-        asort($rtn, SORT_NUMERIC);
-
-        return array_keys($rtn);
     }
 
     /**
@@ -143,9 +158,8 @@ class YMLDataProvider
      * 
      * @return array An array containing the data for each region.
      */
-    public function getAllRegionData()
-    {
-        return $this->getWCConfig()["_REGIONS"];
+    public function getAllRegionData() {
+        return $this->getWCConfig()->get("_REGIONS");
     }
 
     /**
@@ -154,9 +168,9 @@ class YMLDataProvider
      * @param string $region The region to get the data for.
      * @return array An array containing the region's data.
      */
-    public function getRegionData($region)
-    {
-        return $this->getAllRegionData()[$region];
+    public function getRegionData($region) {
+        $regData = $this->getAllRegionData();
+        return self::safeArrayGet($regData, $region);
     }
 
     /**
@@ -164,9 +178,8 @@ class YMLDataProvider
      * 
      * @return array An array containing the flags for each region.
      */
-    public function getAllRegionFlags()
-    {
-        return $this->getAllRegionData()[];
+    public function getAllRegionFlags() {
+        return $this->getAllRegionData();
     }
 
     /**
@@ -175,8 +188,7 @@ class YMLDataProvider
      * @param string $region The region to get the flags for.
      * @return array An array containing the region's flags.
      */
-    public function getRegionFlags($region)
-    {
+    public function getRegionFlags($region) {
         return $this->getRegionData($region);
     }
 
@@ -187,9 +199,9 @@ class YMLDataProvider
      * @param string $flag The flag to get the data from.
      * @return mixed The data from the flag.
      */
-    public function getRegionFlag($region, $flag)
-    {
-        return $this->getRegionFlags($region)[$flag];
+    public function getRegionFlag($region, $flag) {
+        $regionFlags = $this->getRegionFlags($region);
+        return self::safeArrayGet($regionFlags, $flag);
     }
 
     /**
@@ -200,24 +212,15 @@ class YMLDataProvider
      * @param string $value The data to store in the flag.
      * @return void
      */
-    public function setRegionFlag($region, $flag, $value)
-    {
-        $fg = & self::checkArrayKey(& self::checkArrayKey($this->getWCConfig(), "_REGIONS")["_REGIONS"], $region)[$region];
-        $fg[$flag] = $value;
+    public function setRegionFlag($region, $flag, $value) {
+        
+        $allRegionData = $this->getAllRegionData();
+        $allRegionData[$region][$flag] = $value;
+        $this->getWCConfig()->set("_REGIONS", $allRegionData);
         $this->getWCConfig()->save();
     }
 
-    public static function checkArrayKey(&$array, $key)
-    {
-        $array = (array) $array; // In case $array is null.
-        if (!isset($array[$key])) {
-            $array[$key] = null;
-        }
-        return $array;
-    }
-
-    public function setFlag($area, $flag, $value)
-    {
+    public function setFlag($area, $flag, $value) {
         if (Utilities::doesWorldExist($area)) {
             $this->setWorldFlag($area, $flag, $value);
         } elseif (isset($this->getAllRegionFlags()[$flag])) {
@@ -228,40 +231,53 @@ class YMLDataProvider
         return true;
     }
     
-    public function createRegion($name, Position $pos1, Position $pos2){
-        if ($pos1->getLevel() !== $pos2->getLevel()){
+    public function createRegion($name, Position $pos1, Position $pos2) {
+        if ($pos1->getLevel() !== $pos2->getLevel()) {
             return false;
         }
-        
-        $rg = & self::checkArrayKey($this->getWCConfig(), "_REGIONS")["_REGIONS"];
-        $rg[$name] = array();
+
+        $allRegionData = $this->getAllRegionData();
+        $allRegionData[$name] = array();
         $this->getWCConfig()->save();
+
+        $this->setFlag($name, "R_WORLD", $pos1->getLevel());
         
         $this->setFlag($name, "R_POS1_X", $pos1->x);
         $this->setFlag($name, "R_POS1_Y", $pos1->y);
         $this->setFlag($name, "R_POS1_Z", $pos1->z);
-        
+
         $this->setFlag($name, "R_POS2_X", $pos2->x);
         $this->setFlag($name, "R_POS2_Y", $pos2->y);
         $this->setFlag($name, "R_POS2_Z", $pos2->z);
-        
     }
-    
-    public function removeRegion($name){
+
+    public function removeRegion($name) {
         $rg = & self::checkArrayKey($this->getWCConfig(), "_REGIONS")["_REGIONS"];
         unset($rg[$name]);
         $this->getWCConfig()->save();
     }
-    
-    public function isRegion($region){
-        if (isset($this->getAllRegionData()[$region])){
+
+    public function isRegion($region) {
+        if (isset($this->getAllRegionData()[$region])) {
             return true;
         }
         return false;
     }
-    
-    public function isValidArea($area){
+
+    public function isValidArea($area) {
         return Utilities::doesWorldExist($area) || $this->isRegion($area);
+    }
+
+    public static function checkArrayKey(&$array, $key) {
+        $array = (array) $array; // In case $array is null.
+        if (!isset($array[$key])) {
+            $array[$key] = null;
+        }
+        return $array;
+    }
+
+    public static function safeArrayGet(&$array, $key) {
+        return self::checkArrayKey($array, $key)[$key];
     }
 
 }

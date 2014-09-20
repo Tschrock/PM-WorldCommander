@@ -3,6 +3,7 @@
 namespace tschrock\worldcommander;
 
 use pocketmine\Server;
+use pocketmine\command\CommandSender;
 
 class Utilities
 {
@@ -60,6 +61,13 @@ class Utilities
                 return false;
             default:
                 return null;
+        }
+    }
+    
+    public static function sendSplitMessage(CommandSender $sender, $message){
+        $splitStr = explode("\n", $message);
+        foreach ($splitStr as $line) {
+            $sender->sendMessage($line);
         }
     }
 
