@@ -1,0 +1,6 @@
+[submodule "src/jlawrence"]
+	path = src/jlawrence
+	url = https://github.com/jlawrence11/Classes.git
+[submodule "src/Pentangle"]
+	path = src/Pentangle
+	url = https://github.com/Pentangle/EqOS.git

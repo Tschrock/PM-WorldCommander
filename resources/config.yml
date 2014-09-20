@@ -18,4 +18,5 @@ worldcommander.allIsExcluded: false
 blockBanType: 15
 
 # The amount of time, in ticks, between time updates.
-timeUpdateInterval: 30
+# Smaller numbers will make the time look smoother, but will put more strain on the server.
+timeUpdateInterval: 10

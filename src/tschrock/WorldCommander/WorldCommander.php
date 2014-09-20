@@ -46,7 +46,7 @@ class WorldCommander extends PluginBase
     }
 
     /**
-     * The command handler - Handles user input for the /mail command.
+     * The command handler - Handles user input for the /wc commands.
      * 
      * @param \pocketmine\command\CommandSender $sender The person who sent the command.
      * @param \pocketmine\command\Command $command The command.
@@ -170,7 +170,6 @@ class WorldCommander extends PluginBase
 
     public function oncommand_flags(CommandSender $sender, array $args)
     {
-
         if (($world = $this->utilities->getWorld($sender, $args, false)) instanceof \pocketmine\level\Level || !(isset($args[0]))) {
             switch (array_shift($args)) {
                 case "gm":
@@ -249,7 +248,7 @@ class WorldCommander extends PluginBase
                             $this->utilities->setFlag($world, Utilities::FLAG_BLOCKS, $arr);
                             break;
                         default:
-                            $sender->sendMessage("[WorldCommander] Usage: /wc flags bannedblocks <add|remove> <blockId[:data]>");
+                            $sender->sendMessage("[WorldCommander] Usage: /wc flags bannedblocks <add|remove> <blockId[:data]> <banType>");
                             break;
                     }
                     break;
@@ -258,7 +257,7 @@ class WorldCommander extends PluginBase
                     $arg2 = array_shift($args);
 
                     if (!isset($arg2)) {
-                        $sender->sendMessage("[WorldCommander] Usage: /wc flag [world] time <realtime|auto|(number)|(+|-|*|/)(number>");
+                        $sender->sendMessage("[WorldCommander] Usage: /wc flag [world] time <time>");
                     } elseif ($arg2 == "auto") {
                         
                     } elseif ($arg2 == "realtime") {
@@ -278,7 +277,7 @@ class WorldCommander extends PluginBase
                     #$sender->sendMessage("  allowfire            - /wc flag [world] allowfire <true|false>");
                     $sender->sendMessage("  spawnprotection  - /wc flag [world] spawnprotection <radius>");
                     $sender->sendMessage("  bannedblocks     - /wc flag [world] bannedblocks <add|remove> <block>");
-                    $sender->sendMessage("  time                  - /wc flag [world] time <realtime|auto|(number)|(+|-|*|/)(number>");
+                    $sender->sendMessage("  time                  - /wc flag [world] time <realtime|auto|(number)|(+|-|*|/)");
                     break;
             }
         } else {

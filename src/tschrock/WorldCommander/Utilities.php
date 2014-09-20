@@ -77,6 +77,19 @@ class Utilities
     const FLAG_SPAWN = 6;
     const FLAG_BLOCKS = 7;
     const FLAG_TIME = 8;
+    
+    #
+    #   Comming Soon:
+    #
+    const FLAG_BUILD = 9;
+    const FLAG_BED = 10;
+    const FLAG_MOBGRIEF = 11;
+    const FLAG_EXPLOSION_BLOCKDAMAGE = 12;
+    const FLAG_EXPLOSION_ENTITYDAMAGE = 13;
+    const FLAG_GREETING = 14;
+    const FLAG_GOODBY = 15;
+    const FLAG_NEATHERREACTOR = 16;
+    
 
     public function checkPerms(CommandSender $sender, $perm)
     {
