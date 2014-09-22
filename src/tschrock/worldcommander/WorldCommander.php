@@ -61,6 +61,7 @@ class WorldCommander extends PluginBase {
         $this->inclFlags[] = new flag\PvPFlag($this, $this);
         $this->inclFlags[] = new flag\SpawnProtectionFlag($this, $this);
         $this->inclFlags[] = new flag\TimeFlag($this, $this);
+        $this->inclFlags[] = new flag\BuildFlag($this, $this);
     }
 
     /**
@@ -275,7 +276,7 @@ class WorldCommander extends PluginBase {
         if (count($args) == 1) {
             if ($sender instanceof Player) {
                 $player = $sender;
-                $world = $this->utilities->getWorld($sender, $args);
+                $world = Server::getInstance()->getLevelByName(array_shift($args));
                 if ($world === false) {
                     return;
                 }
@@ -289,7 +290,7 @@ class WorldCommander extends PluginBase {
                 $sender->sendMessage("That player doesn't exist or isn't online!");
                 return;
             }
-            $world = $this->utilities->getWorld($sender, $args);
+            $world = Server::getInstance()->getLevelByName(array_shift($args));
             if ($world === false) {
                 return;
             }

@@ -103,7 +103,8 @@ class BuildFlag extends Flag implements Listener {
         if (!$this->wCommander->getFlagHelper()->canBypassFlag($player, $this)) {
             $world = $player->getLevel();
             $regions = $this->wCommander->getDataProvider()->getRegion($block);
-
+            $canBuildBool = null;
+            
             foreach ($regions as $area) {
                 $canBuildVal = $this->wCommander->getFlagHelper()->getFlagValue($area, $this);
                 $canBuildBool = YMLDataProvider::safeArrayGet($canBuildVal, 0);
@@ -112,12 +113,13 @@ class BuildFlag extends Flag implements Listener {
                 }
             }
 
-            if ($canBuildBool == null) {
+            if ($canBuildBool === null) {
                 $canBuildVal = $this->wCommander->getFlagHelper()->getFlagValue($world->getName(), $this);
                 $canBuildBool = YMLDataProvider::safeArrayGet($canBuildVal, 0);
             }
 
-            if ($canBuildBool == false) {
+            if ($canBuildBool === false) {
+                $player->sendMessage("You're not allowed to build here!");
                 $event->setCancelled();
                 return false;
             } else {

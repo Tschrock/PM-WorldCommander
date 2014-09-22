@@ -13,6 +13,7 @@ use pocketmine\plugin\Plugin;
 use pocketmine\Player;
 use pocketmine\Server;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
+use pocketmine\event\entity\EntityDamageEvent;
 use tschrock\worldcommander\Utilities;
 use pocketmine\command\CommandSender;
 use pocketmine\event\Listener;
@@ -36,11 +37,10 @@ class PvPFlag extends Flag implements Listener {
     public function getDefaultValue() {
         return Server::getInstance()->getProperty("pvp");
     }
-    
+
     public function onEnable() {
         Server::getInstance()->getPluginManager()->registerEvents($this, $this->owner);
     }
-
 
     public function handleCommand(CommandSender $sender, $area, $args) {
         $pvp = implode(" ", $args);
@@ -50,30 +50,30 @@ class PvPFlag extends Flag implements Listener {
             parent::handleCommand($sender, $area, $pvpBool);
         }
     }
-    
-    
+
     /**
-     * @param EntityDamageByEntityEvent $event
+     * @param EntityDamageEvent $event
      *
      * @priority NORMAL
      * @ignoreCancelled false
      */
-    public function onEntityHurtEntity(EntityDamageByEntityEvent $event)
-    {
-        if ($event->getEntity() instanceof Player && $event->getDamager() instanceof Player) {
-            #$victim = $event->getEntity();
-            $attacker = $event->getDamager();
-
-            if (!$this->wCommander->getFlagHelper()->canBypassFlag($attacker, $this)) {
-                # Check PVP
-                if (!$this->wCommander->getFlagHelper()->getFlagValue($attacker, $this)) {
-                    $attacker->sendMessage("You are not allowed to PvP in this area!");
-                    $event->setCancelled();
-                    return false;
+    public function onEntityHurt(EntityDamageEvent $event) {
+        if ($event instanceof EntityDamageByEntityEvent) {
+            if ($event->getEntity() instanceof Player && $event->getDamager() instanceof Player) {
+                #$victim = $event->getEntity();
+                $attacker = $event->getDamager();
+                if ($event->getFinalDamage() != 0) {
+                    # Check PVP
+                    if (!$this->wCommander->getFlagHelper()->canBypassFlag($attacker, $this)) {
+                        if (!$this->wCommander->getFlagHelper()->getFlagValue($attacker, $this)) {
+                            $attacker->sendMessage("You are not allowed to PvP in this area!");
+                            $event->setCancelled();
+                            return false;
+                        }
+                    }
                 }
             }
         }
     }
 
 }
- 

@@ -127,7 +127,7 @@ class FlagManager {
             return false;
         }
         return $sender->hasPermission("tschrock.worldcommander.all") ||
-                ($this->plugin->getConfig()->get(self::CONFIG_OPS) && $sender->isOp()) ||
+                ($this->wCommander->getConfig()->get(Utilities::CONFIG_OPS) && $sender->isOp()) ||
                 $sender->hasPermission("tschrock.worldcommander.flags") ||
                 $sender->hasPermission("tschrock.worldcommander.flags." . $iflag->getName() . ".edit");
     }
@@ -137,8 +137,8 @@ class FlagManager {
         if ($iflag === false) {
             return false;
         }
-        return ($this->plugin->getConfig()->get(self::CONFIG_EXCLD_WCALL) && $sender->hasPermission("tschrock.worldcommander.all")) ||
-                ($this->plugin->getConfig()->get(self::CONFIG_EXCLD_OP) && $sender->isOp()) ||
+        return ($this->wCommander->getConfig()->get(Utilities::CONFIG_EXCLD_WCALL) && $sender->hasPermission("tschrock.worldcommander.all")) ||
+                ($this->wCommander->getConfig()->get(Utilities::CONFIG_EXCLD_OP) && $sender->isOp()) ||
                 $sender->hasPermission("tschrock.worldcommander.flags") ||
                 $sender->hasPermission("tschrock.worldcommander.flags." . $iflag->getName() . ".bypass");
     }
@@ -152,7 +152,7 @@ class FlagManager {
         $rtn = null;
 
         if ($area instanceof Position) {
-            $regions = $this->wCommander->getDataProvider()->getRegion($area->level->getName(), $position);
+            $regions = $this->wCommander->getDataProvider()->getRegion($area->level->getName(), $area);
 
             if ($regions != null) {
                 $rtn = $this->wCommander->getDataProvider()->getRegionFlag(array_shift($regions), $iflag->getName());

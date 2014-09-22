@@ -35,6 +35,11 @@ class TimeFlag extends Flag {
         return null;
     }
     
+    public function handleCommand(\pocketmine\command\CommandSender $sender, $area, $args)
+    {
+        parent::handleCommand($sender, $area, implode(" ", $args));
+    }
+    
     public function onEnable() {
         Server::getInstance()->getScheduler()->scheduleRepeatingTask(new TimeFlagTask($this->owner, $this), $this->owner->getConfig()->get(Utilities::CONFIG_TIME));
     }

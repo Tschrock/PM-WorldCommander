@@ -15,9 +15,11 @@ use pocketmine\block\Block;
 use pocketmine\Server;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
+use pocketmine\event\block\BlockEvent;
 use tschrock\worldcommander\Utilities;
 use pocketmine\command\CommandSender;
 use pocketmine\event\Listener;
+use pocketmine\math\Vector2;
 
 /**
  * Description of GamemodeFlag
@@ -83,7 +85,7 @@ class SpawnProtectionFlag extends Flag implements Listener {
         return $this->checkSpawnProtection($player, $block, $event);
     }
     
-    public function checkSpawnProtection(Player $player, Block $block, pocketmine\event\block\BlockEvent $event){
+    public function checkSpawnProtection(Player $player, Block $block, BlockEvent $event){
         if (!$this->wCommander->getFlagHelper()->canBypassFlag($player, $this)) {
             $world = $player->getLevel();
             $protRadius = $this->wCommander->getFlagHelper()->getFlagValue($player, $this);
