@@ -1,44 +1,49 @@
 <?php
 
-namespace tschrock\WorldCommander;
+namespace tschrock\worldcommander\flag;
 
 use pocketmine\scheduler\PluginTask;
+use tschrock\worldcommander\WorldCommander;
 use Pentangle\EqOS\EOS;
 
-class TimeControlTask extends PluginTask
-{
+class TimeFlagTask extends PluginTask {
 
     /** @var WorldCommander */
     protected $owner;
 
     /** @var EOS */
     protected $eos;
+    protected $flag;
 
-    public function onrun($currentTick)
-    {
+    public function __construct(\pocketmine\plugin\Plugin $owner, \tschrock\worldcommander\flag\iFlag $flag) {
+        parent::__construct($owner);
+        $this->flag = $flag;
+    }
+
+    public function onrun($currentTick) {
         $worlds = $this->owner->getServer()->getLevels();
         foreach ($worlds as $world) {
             $this->updateWorldTime($world, $currentTick);
         }
     }
 
-    public function updateWorldTime(\pocketmine\level\Level $world, $currentTick)
-    {
-        $timeData = $this->owner->utilities->getFlag($world->getName(), Utilities::FLAG_TIME);
-        $time = $this->calculateTime($timeData, $currentTick, $world->getTime());
-        $world->setTime($time);
+    public function updateWorldTime(\pocketmine\level\Level $world, $currentTick) {
+        $timeData = WorldCommander::getInstance()->getFlagHelper()->getFlagValue($world->getName(), $this->flag);
+        if ($timeData !== null) {
+            $time = $this->calculateTime($timeData, $currentTick, $world->getTime());
+            $world->setTime($time);
+        }
     }
 
-    public function calculateTime($timeData, $currentTick, $currentTime)
-    {
+    public function calculateTime($timeData, $currentTick, $currentTime) {
         $timeArr = preg_split('/([\+\-\*\/\(\)])/m', $timeData, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
-        ##var_dump($timeArr);
+        
         foreach ($timeArr as $timeKey => $timeVal) {
             if (array_search($timeVal, array("+", "-", "*", "/", "(", ")", "sin", "cos", "tan", "abs")) === false) {
                 $timeArr[$timeKey] = $this->parseIdentifier($timeVal, $currentTick, $currentTime);
             }
         }
-        ##var_dump($timeArr);
+        
         return $this->doMath(implode("", $timeArr));
     }
 
@@ -54,8 +59,7 @@ class TimeControlTask extends PluginTask
         "midnight" => 18000,
     );
 
-    public function parseIdentifier($timeVal, $currentTick, $currentTime)
-    {
+    public function parseIdentifier($timeVal, $currentTick, $currentTime) {
         if (is_numeric($timeVal)) {
             return $timeVal;
         } elseif (isset(self::$timeIdentifiers[$timeVal])) {
@@ -83,13 +87,12 @@ class TimeControlTask extends PluginTask
     ###############################
 
     /**
-     * Uses eqEOS to solve math equations.
+     * Uses EOS to solve math equations.
      * 
      * @param string $equation The equation to solve.
      * @return int The integer result of the equation.
      */
-    public function doMath($equation)
-    {
+    public function doMath($equation) {
         if (!isset($this->eos)) {
             $this->eos = new EOS();
         }
@@ -103,8 +106,7 @@ class TimeControlTask extends PluginTask
      * @param string|array $needle A string or an array of strings to look for.
      * @return bool Whether or not $haystack containes $needle.
      */
-    public static function str_contains(string $haystack, mixed $needle)
-    {
+    public static function str_contains(string $haystack, mixed $needle) {
         if (is_string($needle)) {
             return (strpos($haystack, $needle) !== false);
         } elseif (is_array($needle)) {
@@ -125,8 +127,7 @@ class TimeControlTask extends PluginTask
      * @param int $mctime The minecraft time.
      * @return int The number of seconds after midnight in real time.
      */
-    static public function mctimeToRealtime($mctime)
-    {
+    static public function mctimeToRealtime($mctime) {
         $baseTime = ($mctime + 6000) % 24000; # Adjust MCTime to match 24hr clock and get rid of extra days.
         $deciHours = $baseTime / 1000; # Convert MCTime -> hours
         return floor($deciHours * 60 * 60); # Convert hours -> secconds
@@ -140,8 +141,7 @@ class TimeControlTask extends PluginTask
      * @param int $realtime The number of seconds after midnight in real time.
      * @return int The Minecraft time.
      */
-    static public function realtimeToMctime($realtime)
-    {
+    static public function realtimeToMctime($realtime) {
         $baseTime = ($realtime / 60 / 60); # Convert seconds -> hours
         $mctime = $baseTime * 1000; # Convert hours -> MCTime
         return ($mctime - 6000) % 24000; # Adjust MCTime to match 24hr clock and get rid of extra days.
