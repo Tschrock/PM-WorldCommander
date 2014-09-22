@@ -1,10 +1,12 @@
 <?php
- 
+
 namespace tschrock\worldcommander;
 
 use pocketmine\command\CommandSender;
 use pocketmine\level\Position;
 use tschrock\worldcommander\flag\iFlag;
+use pocketmine\Server;
+use pocketmine\permission\Permission;
 
 /**
  * Description of FlagHandler
@@ -31,16 +33,42 @@ class FlagManager {
 
     /**
      * Registers a flag to the WorldCommander plugin.
-     * @param \tschrock\WorldCommander\iFlag $flag The flag to register.
+     * @param \tschrock\WorldCommander\iFlag $iflag The flag to register.
      */
-    public function registerFlag(iFlag $flag) {
-        $this->flags[$flag->getName()] = $flag;
-        $flag->onEnable();
-        $this->wCommander->getLogger()->info("registered flag: " . $flag->getName());
+    public function registerFlag(iFlag $iflag) {
+
+        // Register the flag and enable it.
+        $this->flags[$iflag->getName()] = $iflag;
+        $iflag->onEnable();
+        $this->wCommander->getLogger()->info("registered flag: " . $iflag->getName());
+
+        // Add the permission nodes for the flag.
+        Server::getInstance()->getPluginManager()->addPermission(
+                new Permission("tschrock.worldcommander.flags." . $iflag->getName() . ".edit"
+                , "Allow a person to change the " . $iflag->getName() . "flag.", false));
+        Server::getInstance()->getPluginManager()->addPermission(
+                new Permission("tschrock.worldcommander.flags." . $iflag->getName() . ".bypass"
+                , "Allow a person to bypass the " . $iflag->getName() . "flag.", false));
     }
 
     public function unregisterFlag($flag) {
+
         $iflag = $this->getFlag($flag);
+        if ($iflag === false) {
+            return;
+        }
+
+        // Remove the permission nodes for the flag.
+        Server::getInstance()->getPluginManager()->removePermission(
+                Server::getInstance()->getPluginManager()->getPermission(
+                        "tschrock.worldcommander.flags." . $iflag->getName() . ".edit"
+        ));
+        Server::getInstance()->getPluginManager()->removePermission(
+                Server::getInstance()->getPluginManager()->getPermission(
+                        "tschrock.worldcommander.flags." . $iflag->getName() . ".bypass"
+        ));
+
+        // Disable the flag and unregister the flag.
         $this->flags[$iflag->getName()]->onDisable();
         $this->wCommander->getLogger()->info("unregistered flag: " . $flag->getName());
         unset($this->flags[$iflag->getName()]);
@@ -120,9 +148,9 @@ class FlagManager {
         if ($iflag === false) {
             return false;
         }
-        
+
         $rtn = null;
-        
+
         if ($area instanceof Position) {
             $regions = $this->wCommander->getDataProvider()->getRegion($area->level->getName(), $position);
 
@@ -140,11 +168,11 @@ class FlagManager {
                 $rtn = $this->wCommander->getDataProvider()->getWorldFlag($area, $iflag->getName());
             }
         }
-        
-        if ($rtn === null){
+
+        if ($rtn === null) {
             $rtn = $iflag->getDefaultValue();
         }
-        
+
         return $rtn;
     }
 

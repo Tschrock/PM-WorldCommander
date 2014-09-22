@@ -51,10 +51,12 @@ class Utilities
     {
         switch (strtolower($text)) {
             case "true":
+            case "allow":
             case "1":
             case "t":
                 return true;
             case "false":
+            case "deny":
             case "0":
             case "-1":
             case "f":
