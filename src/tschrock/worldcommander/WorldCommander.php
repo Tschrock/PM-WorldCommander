@@ -123,6 +123,11 @@ class WorldCommander extends PluginBase {
                     case "teleport":
                         $this->oncommand_tp($sender, $args);
                         break;
+                    case "r":
+                    case "region":
+                    case "regions":
+                        $this->oncommand_region($sender, $args);
+                        break;
                     default:
                         return false;
                 }
@@ -141,6 +146,15 @@ class WorldCommander extends PluginBase {
                 break;
             case "wctp":
                 $this->oncommand_tp($sender, $args);
+                break;
+            case "wcr":
+                $this->oncommand_region($sender, $args);
+                break;
+            case "region":
+                $this->oncommand_region($sender, $args);
+                break;
+            case "regions":
+                $this->oncommand_region($sender, $args);
                 break;
             default:
                 return false;
@@ -228,7 +242,7 @@ class WorldCommander extends PluginBase {
                 if (Utilities::doesWorldExist($arg)) {
                     $sender->sendMessage("World '$arg' has " . count($this->getDataProvider()->getWorldFlags($arg)) . " flags set.");
                 } elseif ($this->getDataProvider()->isRegion($arg)) {
-                    $sender->sendMessage("Region '$arg' has " . count($this->getDataProvider()->getRegionFlag($arg)) . " flags set.");
+                    $sender->sendMessage("Region '$arg' has " . count($this->getDataProvider()->getRegionFlags($arg)) . " flags set.");
                 } elseif ($this->getFlagHelper()->getFlag($arg) != false) {
                     $sender->sendMessage($this->getFlagHelper()->getHelp($arg));
                 } else {
@@ -300,6 +314,76 @@ class WorldCommander extends PluginBase {
         }
 
         $player->teleport($world->getSafeSpawn());
+    }
+
+    protected $positions = array();
+
+    public function oncommand_region(CommandSender $sender, array $args) {
+        if ($sender instanceof Player) {
+            switch (strtolower(array_shift($args))) {
+                case "pos1":
+                    if (!isset($this->positions[$sender->getName()])) {
+                        $this->positions[$sender->getName()] = array();
+                    }
+                    $this->positions[$sender->getName()]["pos1"] = $sender->getPosition();
+                    $sender->sendMessage("Position 1 set to " . $sender->getPosition());
+                    break;
+                case "pos2":
+                    if (!isset($this->positions[$sender->getName()])) {
+                        $this->positions[$sender->getName()] = array();
+                    }
+                    $this->positions[$sender->getName()]["pos2"] = $sender->getPosition();
+                    $sender->sendMessage("Position 2 set to " . $sender->getPosition());
+                    break;
+                case "new":
+                case "create":
+
+                    if (isset($this->positions[$sender->getName()]) &&
+                            isset($this->positions[$sender->getName()]["pos1"]) &&
+                            isset($this->positions[$sender->getName()]["pos2"])) {
+                        if (count($args) > 0) {
+                            if (!$this->getDataProvider()->isRegion($args[0])) {
+                                if (!$this->getDataProvider()->createRegion($args[0], $this->positions[$sender->getName()]["pos1"], $this->positions[$sender->getName()]["pos2"])) {
+                                    $sender->sendMessage("Pos1 and pos2 must be in the same world!");
+                                } else {
+                                    $sender->sendMessage("Successfully created region '$args[0]'");
+                                }
+                            } else {
+                                $sender->sendMessage("That region already exists!");
+                            }
+                        } else {
+                            $sender->sendMessage("Usage: /region create <name>");
+                        }
+                    } else {
+                        $sender->sendMessage("You must mark the two corners of your region with '/region pos1' and '/region pos2'.");
+                    }
+
+                    break;
+                case "delete":
+                case "remove":
+                case "rm":
+                    if (count($args) > 1) {
+                        if ($args[0] == $args[1]) {
+                            if ($this->getDataProvider()->isRegion($args[0])) {
+                                $this->getDataProvider()->removeRegion($args[0]);
+                            } else {
+                                $sender->sendMessage("That region doesn't exists!");
+                            }
+                        } else {
+                            $sender->sendMessage("Region names must match! '/region delete <name> <confirm name>'");
+                        }
+                    } elseif (count($args) > 0) {
+                        $sender->sendMessage("Are you sure you want to delete '$args[0]'?");
+                        $sender->sendMessage("Use '/region delete <name> <confirm name>'");
+                    } else {
+                        $sender->sendMessage("Usage: /region delete <name>");
+                    }
+
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
 }

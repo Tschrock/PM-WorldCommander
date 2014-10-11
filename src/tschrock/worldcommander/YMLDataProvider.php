@@ -115,7 +115,7 @@ class YMLDataProvider {
     public function getRegion($world, Vector3 $location = null) {
         if ($world instanceof Position) {
             $location = $world;
-            $world = $world->getLevel();
+            $world = $world->getLevel()->getName();
         }
 
         if ($location != null) {
@@ -125,10 +125,10 @@ class YMLDataProvider {
 
             foreach ($regions as $region => $flags) {
                 if ($flags["R_WORLD"] == $world) {
-                    if (Utilities::isBetween($location->x, $flags["R_POS1_X"], $flags["R_POS2_X"]) ||
-                            Utilities::isBetween($location->y, $flags["R_POS1_Y"], $flags["R_POS2_Y"]) ||
+                    if (Utilities::isBetween($location->x, $flags["R_POS1_X"], $flags["R_POS2_X"]) &&
+                            Utilities::isBetween($location->y, $flags["R_POS1_Y"], $flags["R_POS2_Y"]) &&
                             Utilities::isBetween($location->z, $flags["R_POS1_Z"], $flags["R_POS2_Z"])) {
-                        $rtn[$region] = $flags["R_PRIORITY"];
+                        $rtn[$region] = (isset($flags["R_PRIORITY"])) ? $flags["R_PRIORITY"] : 0;
                     }
                 }
             }
@@ -136,17 +136,16 @@ class YMLDataProvider {
             asort($rtn, SORT_NUMERIC);
 
             return array_keys($rtn);
-        }
-        else {
+        } else {
             $regions = $this->getAllRegionData();
             $rtn = array();
 
             foreach ($regions as $region => $flags) {
-                if (strpos($region, $world) !== false){
-                    $rtn[$region] = $flags["R_PRIORITY"];
+                if (strpos($region, $world) !== false) {
+                    $rtn[$region] = (isset($flags["R_PRIORITY"])) ? $flags["R_PRIORITY"] : 0;
                 }
             }
-            
+
             asort($rtn, SORT_NUMERIC);
 
             return array_keys($rtn);
@@ -213,7 +212,7 @@ class YMLDataProvider {
      * @return void
      */
     public function setRegionFlag($region, $flag, $value) {
-        
+
         $allRegionData = $this->getAllRegionData();
         $allRegionData[$region][$flag] = $value;
         $this->getWCConfig()->set("_REGIONS", $allRegionData);
@@ -223,37 +222,40 @@ class YMLDataProvider {
     public function setFlag($area, $flag, $value) {
         if (Utilities::doesWorldExist($area)) {
             $this->setWorldFlag($area, $flag, $value);
-        } elseif (isset($this->getAllRegionFlags()[$flag])) {
+        } elseif (isset($this->getAllRegionFlags()[$area])) {
             $this->setRegionFlag($area, $flag, $value);
         } else {
             return false;
         }
         return true;
     }
-    
+
     public function createRegion($name, Position $pos1, Position $pos2) {
-        if ($pos1->getLevel() !== $pos2->getLevel()) {
+        if ($pos1->getLevel()->getName() != $pos2->getLevel()->getName()) {
             return false;
         }
 
         $allRegionData = $this->getAllRegionData();
-        $allRegionData[$name] = array();
+        $allRegionData[$name] = array(
+            "R_WORLD" => $pos1->getLevel()->getName(),
+            "R_POS1_X" => $pos1->x,
+            "R_POS1_Y" => $pos1->y,
+            "R_POS1_Z" => $pos1->z,
+            "R_POS2_X" => $pos2->x,
+            "R_POS2_Y" => $pos2->y,
+            "R_POS2_Z" => $pos2->z);
+        $this->getWCConfig()->set("_REGIONS", $allRegionData);
         $this->getWCConfig()->save();
 
-        $this->setFlag($name, "R_WORLD", $pos1->getLevel());
-        
-        $this->setFlag($name, "R_POS1_X", $pos1->x);
-        $this->setFlag($name, "R_POS1_Y", $pos1->y);
-        $this->setFlag($name, "R_POS1_Z", $pos1->z);
 
-        $this->setFlag($name, "R_POS2_X", $pos2->x);
-        $this->setFlag($name, "R_POS2_Y", $pos2->y);
-        $this->setFlag($name, "R_POS2_Z", $pos2->z);
+
+        return true;
     }
 
     public function removeRegion($name) {
-        $rg = & self::checkArrayKey($this->getWCConfig(), "_REGIONS")["_REGIONS"];
-        unset($rg[$name]);
+        $allRegionData = $this->getAllRegionData();
+        unset($allRegionData[$name]);
+        $this->getWCConfig()->set("_REGIONS", $allRegionData);
         $this->getWCConfig()->save();
     }
 
@@ -268,16 +270,17 @@ class YMLDataProvider {
         return Utilities::doesWorldExist($area) || $this->isRegion($area);
     }
 
-    public static function checkArrayKey(&$array, $key) {
-        $array = (array) $array; // In case $array is null.
-        if (!isset($array[$key])) {
-            $array[$key] = null;
-        }
-        return $array;
-    }
+    //public static function checkArrayKey(&$array, $key) {
+    //    $array = (array) $array; // In case $array is null.
+    //    if (!isset($array[$key])) {
+    //        $array[$key] = null;
+    //    }
+    //    return $array;
+    //}
 
-    public static function safeArrayGet(&$array, $key) {
-        return self::checkArrayKey($array, $key)[$key];
+    public static function safeArrayGet($array, $key) {
+        return (isset($array[$key])) ? $array[$key] : null;
+        //return self::checkArrayKey($array, $key)[$key];
     }
 
 }

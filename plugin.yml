@@ -11,7 +11,7 @@ website: http://www.tschrock.net
 commands:
  wc:
   description: Main WorldCommander command.
-  usage: "/wc <create|load|unload|flags|tp> [worldname]"
+  usage: "/wc <create|load|unload|flags|tp|regions> [worldname]"
  wcc:
   description: Create worlds.
   usage: "/wcc <worldname> [seed [generator [generator options]]]"
@@ -27,6 +27,15 @@ commands:
  wctp:
   description: Tp to a different world.
   usage: "/wctp [player] <world>"
+ wcr:
+  description: Edit regions in a world.
+  usage: "/wcr"
+ regions:
+  description:  Edit regions in a world.
+  usage: "regions"
+ region:
+  description:  Edit regions in a world.
+  usage: "region"
 permissions:
  tschrock.worldcommander.all:
   description: "Allows the user to use all WorldCommander commands."
@@ -54,4 +63,16 @@ permissions:
   default: false
  tschrock.worldcommander.tp.other:
   description: "Allows the user to teleport other players to differant worlds."
+  default: false
+ tschrock.worldcommander.regions:
+  description: "Allows the user to manage regions."
+  default: false
+ tschrock.worldcommander.regions.create:
+  description: "Allows the user to create regions."
+  default: false
+ tschrock.worldcommander.regions.delete:
+  description: "Allows the user to delete regions."
+  default: false
+ tschrock.worldcommander.regions.edit:
+  description: "Allows the user to edit regions."
   default: false

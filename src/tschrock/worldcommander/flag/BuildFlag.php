@@ -62,7 +62,7 @@ class BuildFlag extends Flag implements Listener {
             $flagVal[1] = $excludeNew;
             $this->wCommander->getDataProvider()->setFlag($area, $this->getName(), $flagVal);
         } else {
-            if (($canBuildBool = Utilities::parseBoolean($canBuild)) !== null) {
+            if (($canBuildBool = Utilities::parseBoolean($canBuild)) === null) {
                 $sender->sendMessage("'$canBuild' isn't a correct canbuild value. Must be 'true' or 'false' with an optional exclude list; Or 'add <playerlist>' or 'remove <playerlist>' to change the exclude list.");
             } else {
                 parent::handleCommand($sender, $area, array($canBuildBool, $exceptionsArr));
@@ -97,13 +97,19 @@ class BuildFlag extends Flag implements Listener {
     }
 
     public function checkBuildPerms(Player $player, Block $block, BlockEvent $event) {
+                
         if ($player->getLevel() != $block->getLevel()) {
+            $this->owner->getLogger()->error(
+                    "Player '" . $player->getName() . "' in world '" . $player->getLevel()->getName() .
+                    "' is trying to edit a block '" . $block->getName() . "' in world '" . $player->getLevel()->getName() . "'");
             return;
         }
         if (!$this->wCommander->getFlagHelper()->canBypassFlag($player, $this)) {
             $world = $player->getLevel();
             $regions = $this->wCommander->getDataProvider()->getRegion($block);
             $canBuildBool = null;
+
+            //var_dump($regions);
             
             foreach ($regions as $area) {
                 $canBuildVal = $this->wCommander->getFlagHelper()->getFlagValue($area, $this);
