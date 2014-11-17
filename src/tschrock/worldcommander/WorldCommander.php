@@ -13,38 +13,29 @@ class WorldCommander extends PluginBase {
     /** @var WorldCommander */
     private static $instance = null;
 
-    /**
-     * @return WorldCommander
-     */
+    /** @return WorldCommander */
     public static function getInstance() {
         return self::$instance;
     }
 
-    /**
-     *
-     * @var array<iFlag>
-     */
-    protected $inclFlags;
-
-    /**
-     *
-     * @var YMLDataProvider
-     */
+    /** @var YMLDataProvider */
     protected $dataProvider;
 
+    /** @var YMLDataProvider */
     public function getDataProvider() {
         return $this->dataProvider;
     }
 
-    /**
-     *
-     * @var FlagManager
-     */
+    /** @var FlagHelper  */
     protected $flagHelper;
 
+    /** @var FlagHelper  */
     public function getFlagHelper() {
         return $this->flagHelper;
     }
+
+    /** @var array<iFlag> */
+    protected $includedFlags;
 
     public function __construct() {
         self::$instance = $this;
@@ -55,23 +46,24 @@ class WorldCommander extends PluginBase {
      */
     public function onLoad() {
         $this->dataProvider = new YMLDataProvider($this->getDataFolder() . "worldData.yml");
-        $this->flagHelper = new FlagManager($this);
+        $this->flagHelper = new FlagHelper($this);
 
-        $this->inclFlags[] = new flag\GamemodeFlag($this, $this);
-        $this->inclFlags[] = new flag\PvPFlag($this, $this);
-        $this->inclFlags[] = new flag\SpawnProtectionFlag($this, $this);
-        $this->inclFlags[] = new flag\TimeFlag($this, $this);
-        $this->inclFlags[] = new flag\BuildFlag($this, $this);
+        $this->includedFlags = array(
+            new flag\GamemodeFlag($this, $this),
+            new flag\PvPFlag($this, $this),
+            new flag\SpawnProtectionFlag($this, $this),
+            new flag\TimeFlag($this, $this),
+            new flag\BuildFlag($this, $this)
+        );
     }
 
     /**
      * The onEnable function.
+     * 
+     * Registers all built-in flags and loads the config.
      */
     public function onEnable() {
-        //$this->getServer()->getPluginManager()->registerEvents(new PlayerEventListener($this), $this);
-        //$this->getServer()->getScheduler()->scheduleRepeatingTask(new TimeControlTask($this), $this->getConfig()->get(Utilities::CONFIG_TIME));
-
-        foreach ($this->inclFlags as $flag) {
+        foreach ($this->includedFlags as $flag) {
             $this->getFlagHelper()->registerFlag($flag);
         }
 
@@ -81,9 +73,11 @@ class WorldCommander extends PluginBase {
 
     /**
      * The onDisable function.
+     * 
+     * Unregisters all built-in flags.
      */
     public function onDisable() {
-        foreach ($this->inclFlags as $flag) {
+        foreach ($this->includedFlags as $flag) {
             $this->getFlagHelper()->unregisterFlag($flag);
         }
     }
@@ -148,11 +142,7 @@ class WorldCommander extends PluginBase {
                 $this->oncommand_tp($sender, $args);
                 break;
             case "wcr":
-                $this->oncommand_region($sender, $args);
-                break;
             case "region":
-                $this->oncommand_region($sender, $args);
-                break;
             case "regions":
                 $this->oncommand_region($sender, $args);
                 break;
@@ -170,14 +160,14 @@ class WorldCommander extends PluginBase {
         } elseif ($this->getServer()->getLevelByName($args[0]) != null) {
             $sender->sendMessage("[WorldCommander] This world already exists!");
         } else {
-            $world = $this->utilities->checkWorldName($args[0]);
-            if ($world != true) {
-                $sender->sendMessage($world);
-            } elseif (!$this->utilities->checkPerms($sender, Utilities::PERM_CREATE)) {
-                $sender->sendMessage("[WorldCommander] You don't have permission to create worlds!");
-            } else {
+            if ($sender->hasPermission("tschrock.worldcommander.all") ||
+                    $sender->hasPermission("tschrock.worldcommander.worlds") ||
+                    $sender->hasPermission("tschrock.worldcommander.worlds.create") ||
+                    ($this->getConfig()->get(Utilities::CONFIG_OPS) && $sender->isOp())) {
                 $sender->sendMessage("[WorldCommander] Starting generation of world '$args[0]' in the background.");
                 $this->getServer()->generateLevel(array_shift($args), array_shift($args), array_shift($args), $args);
+            } else {
+                $sender->sendMessage("[WorldCommander] You don't have permission to create worlds!");
             }
         }
     }
@@ -187,9 +177,12 @@ class WorldCommander extends PluginBase {
 
         if (!isset($world) || !is_string($world) || $world == '' || $world == null) {
             $sender->sendMessage("[WorldCommander] Usage: /wc load <worldname>");
-        } elseif ($this->utilities->doesWorldExist($world) == false) {
+        } elseif (!Utilities::doesWorldExist($world)) {
             $sender->sendMessage("[WorldCommander] That world doesn't exist!");
-        } elseif (!$this->utilities->checkPerms($sender, Utilities::PERM_LOAD)) {
+        } elseif (!($sender->hasPermission("tschrock.worldcommander.all") ||
+                $sender->hasPermission("tschrock.worldcommander.worlds") ||
+                $sender->hasPermission("tschrock.worldcommander.worlds.load") ||
+                ($this->getConfig()->get(Utilities::CONFIG_OPS) && $sender->isOp()))) {
             $sender->sendMessage("[WorldCommander] You don't have permission to load worlds!");
         } else {
             $sender->sendMessage("[WorldCommander] Attempting to load world '$world'");
@@ -205,14 +198,17 @@ class WorldCommander extends PluginBase {
     public function oncommand_world_unload(CommandSender $sender, array $args) {
         if (!isset($args[0]) || !is_string($args[0]) || $args[0] == '' || $args[0] == null) {
             $sender->sendMessage("[WorldCommander] Usage: /wc unload <worldname>");
-        } elseif (($world = $this->utilities->getWorld($sender, $args)) == false) {
+        } elseif (!Utilities::doesWorldExist($args[0])) {
             $sender->sendMessage("[WorldCommander] That world doesn't exist!");
-        } elseif (!$this->utilities->checkPerms($sender, Utilities::PERM_UNLOAD)) {
+        } elseif (!($sender->hasPermission("tschrock.worldcommander.all") ||
+                $sender->hasPermission("tschrock.worldcommander.worlds") ||
+                $sender->hasPermission("tschrock.worldcommander.worlds.unload") ||
+                ($this->getConfig()->get(Utilities::CONFIG_OPS) && $sender->isOp()))) {
             $sender->sendMessage("[WorldCommander] You don't have permission to unload worlds!");
         } else {
-            $name = $world->getName();
+            $name = $args[0];
             $sender->sendMessage("[WorldCommander] Attempting to unload world '$name'");
-            $result = $this->getServer()->unloadLevel($world);
+            $result = $this->getServer()->unloadLevel($this->getServer()->getLevelByName($name));
             if ($result) {
                 $sender->sendMessage("[WorldCommander] Successfully unloaded world '$name'");
             } else {
@@ -222,23 +218,25 @@ class WorldCommander extends PluginBase {
     }
 
     public function oncommand_flags(CommandSender $sender, array $args) {
-        if (count($args) == 0) {
-            $sender->sendMessage("Usage: /wc flag <area> <flag> or /wc flag help");
-            $sender->sendMessage("Use '/wc flag help' for more info.");
-        } elseif (count($args) == 1) {
-            $arg = $args[0];
-            if ($arg == "help") {
-                $sender->sendMessage("'/wc flag' Commands:");
-                $sender->sendMessage("    /wc flag help    - get this help.");
-                $sender->sendMessage("    /wc flag list    - list all flags.");
-                $sender->sendMessage("    /wc flag <flag>  - get info for a flag.");
-                $sender->sendMessage("    /wc flag <area>  - get info for a world/region.");
-            } elseif ($arg == "list") {
+
+        switch (array_shift($args)) {
+            case "help":
+                Utilities::sendSplitMessage($sender, "" +
+                        "'/wc flag' Commands: " +
+                        "\n    /wc flag help    - get this help." +
+                        "\n    /wc flag list    - list all flags." +
+                        "\n    /wc flag info <flag|area>  - get info for a flag/world/region." +
+                        "\n    /wc flag set <area> <flag> <value>  - set the flag in an area."
+                );
+                break;
+            case "ls":
+            case "list":
                 Utilities::sendSplitMessage($sender, ""
                         . "Available flags:\n"
                         . $this->getFlagHelper()->getHelp()
                 );
-            } else {
+                break;
+            case "info":
                 if (Utilities::doesWorldExist($arg)) {
                     $sender->sendMessage("World '$arg' has " . count($this->getDataProvider()->getWorldFlags($arg)) . " flags set.");
                 } elseif ($this->getDataProvider()->isRegion($arg)) {
@@ -248,46 +246,56 @@ class WorldCommander extends PluginBase {
                 } else {
                     $sender->sendMessage("Usage: /wc flag <area> <flag> or /wc flag help");
                 }
-            }
-        } elseif (count($args) >= 2) {
+                break;
+            case "set":
+                $area = array_shift($args);
 
-            $area = array_shift($args);
-            if ($area == "@world" || $area == "@region") {
-                if ($sender instanceof Player && $sender->spawned) {
-                    if ($area == "@world") {
-                        $area = $sender->getLevel()->getName();
-                    } elseif ($area == "@region") {
-                        $regions = $this->dataProvider->getRegion($sender->getLevel()->getName(), $sender->getPosition());
-                        if (isset($regions[0])) {
-                            $area = $regions[0];
-                        } else {
-                            $sender->sendMessage("You aren't in any regions! Did you mean @world?");
-                            return;
-                        }
-                    }
-                } else {
+                if (($area == "@world" || $area == "@region") && !($sender instanceof Player && $sender->spawned)) {
                     $sender->sendMessage("You can only use @world/@region in-game.");
                     return;
                 }
-            }
 
-            if (!$this->dataProvider->isValidArea($area)) {
-                $sender->sendMessage("'$area' isn't a valid area! It must be a world or region.");
-                return;
-            }
+                if ($area == "@world") {
+                    $area = $sender->getLevel()->getName();
+                } elseif ($area == "@region") {
+                    $regions = $this->dataProvider->getRegion($sender->getLevel()->getName(), $sender->getPosition());
+                    if (isset($regions[0])) {
+                        $area = $regions[0];
+                    } else {
+                        $sender->sendMessage("You aren't in any regions! Did you mean @world?");
+                        return;
+                    }
+                }
 
-            if (($iflag = $this->flagHelper->getFlag(array_shift($args))) !== false) {
-                $iflag->handleCommand($sender, $area, $args);
-            } else {
-                $sender->sendMessage("That flag doesn't exist.");
-                return;
-            }
+                if (!$this->dataProvider->isValidArea($area)) {
+                    $sender->sendMessage("'$area' isn't a valid area! It must be a world or region.");
+                    return;
+                }
+
+                if (($iflag = $this->flagHelper->getFlag(array_shift($args))) == false) {
+                    $sender->sendMessage("That flag doesn't exist.");
+                    return;
+                } else {
+                    $iflag->handleCommand($sender, $area, $args);
+                }
+
+                break;
+            default:
+                $sender->sendMessage("Usage: /wc flag set <area> <flag> <value>  or  /wc flag help");
+                break;
         }
     }
 
     public function oncommand_tp(CommandSender $sender, array $args) {
 
+
         if (count($args) == 1) {
+            if (!($sender->hasPermission("tschrock.worldcommander.all") ||
+                    $sender->hasPermission("tschrock.worldcommander.tp") ||
+                    ($this->getConfig()->get(Utilities::CONFIG_OPS) && $sender->isOp()))) {
+                $sender->sendMessage("You don't have permission to teleport.");
+                return;
+            }
             if ($sender instanceof Player) {
                 $player = $sender;
                 $world = Server::getInstance()->getLevelByName(array_shift($args));
@@ -295,10 +303,16 @@ class WorldCommander extends PluginBase {
                     return;
                 }
             } else {
-                $sender->sendMessage("You must put a player!");
+                $sender->sendMessage("You must put a world!");
                 return;
             }
         } elseif (count($args) == 2) {
+            if (!($sender->hasPermission("tschrock.worldcommander.all") ||
+                    $sender->hasPermission("tschrock.worldcommander.tp.other") ||
+                    ($this->getConfig()->get(Utilities::CONFIG_OPS) && $sender->isOp()))) {
+                $sender->sendMessage("You don't have permission to teleport other players.");
+                return;
+            }
             $player = $this->getServer()->getPlayerExact(array_shift($args));
             if ($player === null) {
                 $sender->sendMessage("That player doesn't exist or isn't online!");
@@ -306,6 +320,7 @@ class WorldCommander extends PluginBase {
             }
             $world = Server::getInstance()->getLevelByName(array_shift($args));
             if ($world === false) {
+                $sender->sendMessage("That world doesn't exist!");
                 return;
             }
         } else {
@@ -319,9 +334,17 @@ class WorldCommander extends PluginBase {
     protected $positions = array();
 
     public function oncommand_region(CommandSender $sender, array $args) {
+
+
         if ($sender instanceof Player) {
             switch (strtolower(array_shift($args))) {
                 case "pos1":
+                    if (!($sender->hasPermission("tschrock.worldcommander.all") ||
+                            $sender->hasPermission("tschrock.worldcommander.regions") ||
+                            ($this->getConfig()->get(Utilities::CONFIG_OPS) && $sender->isOp()))) {
+                        $sender->sendMessage("You don't have permission to manage regions!");
+                        return;
+                    }
                     if (!isset($this->positions[$sender->getName()])) {
                         $this->positions[$sender->getName()] = array();
                     }
@@ -329,6 +352,12 @@ class WorldCommander extends PluginBase {
                     $sender->sendMessage("Position 1 set to " . $sender->getPosition());
                     break;
                 case "pos2":
+                    if (!($sender->hasPermission("tschrock.worldcommander.all") ||
+                            $sender->hasPermission("tschrock.worldcommander.regions") ||
+                            ($this->getConfig()->get(Utilities::CONFIG_OPS) && $sender->isOp()))) {
+                        $sender->sendMessage("You don't have permission to manage regions!");
+                        return;
+                    }
                     if (!isset($this->positions[$sender->getName()])) {
                         $this->positions[$sender->getName()] = array();
                     }
@@ -337,40 +366,52 @@ class WorldCommander extends PluginBase {
                     break;
                 case "new":
                 case "create":
-
-                    if (isset($this->positions[$sender->getName()]) &&
+                    if (!($sender->hasPermission("tschrock.worldcommander.all") ||
+                            $sender->hasPermission("tschrock.worldcommander.regions") ||
+                            $sender->hasPermission("tschrock.worldcommander.regions.create") ||
+                            ($this->getConfig()->get(Utilities::CONFIG_OPS) && $sender->isOp()))) {
+                        $sender->sendMessage("You don't have permission to create regions!");
+                        return;
+                    }
+                    if (!(count($args) > 0)) {
+                        $sender->sendMessage("Usage: /region create <name> <priority>");
+                    } elseif (!(isset($this->positions[$sender->getName()]) &&
                             isset($this->positions[$sender->getName()]["pos1"]) &&
-                            isset($this->positions[$sender->getName()]["pos2"])) {
-                        if (count($args) > 0) {
-                            if (!$this->getDataProvider()->isRegion($args[0])) {
-                                if (!$this->getDataProvider()->createRegion($args[0], $this->positions[$sender->getName()]["pos1"], $this->positions[$sender->getName()]["pos2"])) {
-                                    $sender->sendMessage("Pos1 and pos2 must be in the same world!");
-                                } else {
-                                    $sender->sendMessage("Successfully created region '$args[0]'");
-                                }
-                            } else {
-                                $sender->sendMessage("That region already exists!");
-                            }
-                        } else {
-                            $sender->sendMessage("Usage: /region create <name>");
-                        }
-                    } else {
+                            isset($this->positions[$sender->getName()]["pos2"]))) {
                         $sender->sendMessage("You must mark the two corners of your region with '/region pos1' and '/region pos2'.");
+                    } elseif ($this->getDataProvider()->isRegion($args[0])) {
+                        $sender->sendMessage("That region already exists!");
+                    } else {
+                        $pos1 = $this->positions[$sender->getName()]["pos1"];
+                        $pos2 = $this->positions[$sender->getName()]["pos2"];
+                        $priority = isset($args[1]) ? $args[1] : 0;
+                        if ($pos1->getLevel()->getName() != $pos2->getLevel()->getName()) {
+                            $sender->sendMessage("pos1 and pos2 must be in the same world!");
+                        } else {
+                            $this->getDataProvider()->createRegion($args[0], $pos1, $pos2, $priority);
+                            $sender->sendMessage("Successfully created region '$args[0]'");
+                        }
                     }
 
                     break;
                 case "delete":
                 case "remove":
                 case "rm":
+                    if (!($sender->hasPermission("tschrock.worldcommander.all") ||
+                            $sender->hasPermission("tschrock.worldcommander.regions") ||
+                            $sender->hasPermission("tschrock.worldcommander.regions.delete") ||
+                            ($this->getConfig()->get(Utilities::CONFIG_OPS) && $sender->isOp()))) {
+                        $sender->sendMessage("You don't have permission to delete regions!");
+                        return;
+                    }
                     if (count($args) > 1) {
-                        if ($args[0] == $args[1]) {
-                            if ($this->getDataProvider()->isRegion($args[0])) {
-                                $this->getDataProvider()->removeRegion($args[0]);
-                            } else {
-                                $sender->sendMessage("That region doesn't exists!");
-                            }
-                        } else {
+                        if ($args[0] != $args[1]) {
                             $sender->sendMessage("Region names must match! '/region delete <name> <confirm name>'");
+                        } elseif (!$this->getDataProvider()->isRegion($args[0])) {
+                            $sender->sendMessage("That region doesn't exists!");
+                        } else {
+                            $this->getDataProvider()->removeRegion($args[0]);
+                            $sender->sendMessage("Removed region '$args[0]'?");
                         }
                     } elseif (count($args) > 0) {
                         $sender->sendMessage("Are you sure you want to delete '$args[0]'?");
@@ -380,7 +421,18 @@ class WorldCommander extends PluginBase {
                     }
 
                     break;
+                case "list":
+                case "ls":
+                    if (!($sender->hasPermission("tschrock.worldcommander.all") ||
+                            $sender->hasPermission("tschrock.worldcommander.regions") ||
+                            ($this->getConfig()->get(Utilities::CONFIG_OPS) && $sender->isOp()))) {
+                        $sender->sendMessage("You don't have permission to mannage regions!");
+                        return;
+                    }
+                    $sender->sendMessage(implode(", ", array_keys($this->getDataProvider()->getAllRegionData())));
+                    break;
                 default:
+                    $sender->sendMessage("Usage: /regions <pos1|pos2|create|delete|list>");
                     break;
             }
         }

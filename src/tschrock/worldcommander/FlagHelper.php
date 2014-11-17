@@ -13,16 +13,14 @@ use pocketmine\permission\Permission;
  *
  * @author tyler
  */
-class FlagManager {
+class FlagHelper {
 
     /**
-     *
      * @var WorldCommander
      */
     private $wCommander;
 
     /**
-     *
      * @var array<iFlag>
      */
     private $flags;
@@ -75,7 +73,7 @@ class FlagManager {
     }
 
     /**
-     * 
+     * Finds a flag by it's name or alias
      * @param string $name
      * @return iFlag|bool
      */
@@ -93,7 +91,7 @@ class FlagManager {
     }
 
     /**
-     * 
+     * Get the flag by type or name.
      * @param iFlag|string $flag
      * @return iFlag|bool
      */
@@ -105,6 +103,12 @@ class FlagManager {
         }
     }
 
+    /**
+     * Gets the help for all flags (or the specified one).
+     * @param iFlag|string $flag
+     * @param boolean $short
+     * @return string
+     */
     public function getHelp($flag = false, $short = false) {
         if ($flag === false) {
             $rtn = "";
@@ -121,6 +125,12 @@ class FlagManager {
         }
     }
 
+    /**
+     * Weather or not a player can edit a flag.
+     * @param CommandSender $sender
+     * @param iFlag|string $flag
+     * @return boolean
+     */
     public function canEditFlag(CommandSender $sender, $flag) {
         $iflag = $this->getFlag($flag);
         if ($iflag === false) {
@@ -132,6 +142,12 @@ class FlagManager {
                 $sender->hasPermission("tschrock.worldcommander.flags." . $iflag->getName() . ".edit");
     }
 
+    /**
+     * Weather or not a player can bypass a flag.
+     * @param CommandSender $sender
+     * @param iFlag|string $flag
+     * @return boolean
+     */
     public function canBypassFlag(CommandSender $sender, $flag) {
         $iflag = $this->getFlag($flag);
         if ($iflag === false) {
@@ -143,6 +159,12 @@ class FlagManager {
                 $sender->hasPermission("tschrock.worldcommander.flags." . $iflag->getName() . ".bypass");
     }
 
+    /**
+     * Gets the value of the flag for a specified area.
+     * @param Position|string $area
+     * @param iFlag|string $flag
+     * @return mixed
+     */
     public function getFlagValue($area, $flag) {
         $iflag = $this->getFlag($flag);
         if ($iflag === false) {
@@ -151,22 +173,12 @@ class FlagManager {
 
         $rtn = null;
 
-        if ($area instanceof Position) {
-            $regions = $this->wCommander->getDataProvider()->getRegion($area->level->getName(), $area);
+        $regions = $this->wCommander->getDataProvider()->getRegion($area);
 
-            if ($regions != null) {
-                $rtn = $this->wCommander->getDataProvider()->getRegionFlag(array_shift($regions), $iflag->getName());
-            } else {
-                $rtn = $this->wCommander->getDataProvider()->getWorldFlag($area->level->getName(), $iflag->getName());
-            }
+        if ($regions != null) {
+            $rtn = $this->wCommander->getDataProvider()->getRegionFlag(array_shift($regions), $iflag->getName());
         } else {
-            $regions = $this->wCommander->getDataProvider()->getRegion($area);
-
-            if ($regions != null) {
-                $rtn = $this->wCommander->getDataProvider()->getRegionFlag(array_shift($regions), $iflag->getName());
-            } else {
-                $rtn = $this->wCommander->getDataProvider()->getWorldFlag($area, $iflag->getName());
-            }
+            $rtn = $this->wCommander->getDataProvider()->getWorldFlag($area, $iflag->getName());
         }
 
         if ($rtn === null) {

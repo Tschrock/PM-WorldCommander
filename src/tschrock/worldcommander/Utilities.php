@@ -11,13 +11,11 @@ class Utilities
     const CONFIG_OPS = "opHasAllPermissions";
     const CONFIG_EXCLD_OP = "opIsExcluded";
     const CONFIG_EXCLD_WCALL = "worldcommander.allIsExcluded";
-    const CONFIG_BLOCK = "blockBanType";
     const CONFIG_WORLDS = "worlds";
     const CONFIG_TIME = "timeUpdateInterval";
     
-    
     /**
-     * Tests whether or not a point lies between two other points.\
+     * Tests whether or not a point lies between two other points.
      * 
      * @param number $testpoint The point to test.
      * @param number $point1 The first limit.
@@ -34,7 +32,7 @@ class Utilities
      * Checks if a world exists.
      * 
      * @param string $worldName The name of the world.
-     * @return bool
+     * @return boolean
      */
     public static function doesWorldExist($worldName)
     {
@@ -67,7 +65,7 @@ class Utilities
     }
     
     public static function sendSplitMessage(CommandSender $sender, $message){
-        $splitStr = explode("\n", $message);
+        $splitStr = explode('\n', $message);
         foreach ($splitStr as $line) {
             $sender->sendMessage($line);
         }

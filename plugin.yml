@@ -73,6 +73,3 @@ permissions:
  tschrock.worldcommander.regions.delete:
   description: "Allows the user to delete regions."
   default: false
- tschrock.worldcommander.regions.edit:
-  description: "Allows the user to edit regions."
-  default: false

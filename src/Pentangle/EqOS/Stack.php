@@ -7,7 +7,7 @@
  * PHP functions `array_pop()`, `array_push()`, and `end()`
  *
  * @author Jon Lawrence <jlawrence11@gmail.com>
- * @copyright Copyright ©2005-2013 Jon Lawrence
+ * @copyright Copyright 2005-2013 Jon Lawrence
  * @license http://opensource.org/licenses/LGPL-2.1 LGPL 2.1 License
  * @package Math
  * @subpackage EOS

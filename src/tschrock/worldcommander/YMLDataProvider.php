@@ -78,11 +78,14 @@ class YMLDataProvider {
     /**
      * Gets the data for a specific world flag.
      * 
-     * @param string $world The world to get the flag data from.
+     * @param string|Position $world The world to get the flag data from.
      * @param string $flag The flag to get the data from.
      * @return mixed The data from the flag.
      */
     public function getWorldFlag($world, $flag) {
+        if ($world instanceof Position) {
+            $world = $world->getLevel()->getName();
+        }
         $worldFlags = $this->getWorldFlags($world);
         return self::safeArrayGet($worldFlags, $flag);
     }
@@ -108,7 +111,7 @@ class YMLDataProvider {
      * Returns a list of all of the regions at a location in order of region
      * priority. The order of regions with the same priority is undefined.
      * 
-     * @param string $world The world.
+     * @param string|Position $world The world.
      * @param Vector3 $location The location.
      * @return array An array of the name(s) of all of the region(s) at the location.
      */
@@ -219,6 +222,13 @@ class YMLDataProvider {
         $this->getWCConfig()->save();
     }
 
+    /**
+     * Sets the flag for the named area.
+     * @param string $area
+     * @param string $flag
+     * @param mixed $value
+     * @return boolean
+     */
     public function setFlag($area, $flag, $value) {
         if (Utilities::doesWorldExist($area)) {
             $this->setWorldFlag($area, $flag, $value);
@@ -230,7 +240,15 @@ class YMLDataProvider {
         return true;
     }
 
-    public function createRegion($name, Position $pos1, Position $pos2) {
+    /**
+     * Creates a new region.
+     * @param string $name
+     * @param Position $pos1
+     * @param Position $pos2
+     * @param number $priority
+     * @return boolean
+     */
+    public function createRegion($name, Position $pos1, Position $pos2, $priority = 0) {
         if ($pos1->getLevel()->getName() != $pos2->getLevel()->getName()) {
             return false;
         }
@@ -243,15 +261,18 @@ class YMLDataProvider {
             "R_POS1_Z" => $pos1->z,
             "R_POS2_X" => $pos2->x,
             "R_POS2_Y" => $pos2->y,
-            "R_POS2_Z" => $pos2->z);
+            "R_POS2_Z" => $pos2->z,
+            "R_PRIORITY" => $priority);
         $this->getWCConfig()->set("_REGIONS", $allRegionData);
         $this->getWCConfig()->save();
-
-
 
         return true;
     }
 
+    /**
+     * Removes a region
+     * @param string $name
+     */
     public function removeRegion($name) {
         $allRegionData = $this->getAllRegionData();
         unset($allRegionData[$name]);
@@ -259,6 +280,24 @@ class YMLDataProvider {
         $this->getWCConfig()->save();
     }
 
+    public function getRegionInfo($region) {
+        if (!$this->isRegion($region)) {
+            return null;
+        }
+
+        $rFlags = $this->getRegionData($region);
+
+        return "Region '" . $region . "': " . $rFlags['R_WORLD'] . " (" .
+                $rFlags['R_POS1_X'] . ", " . $rFlags['R_POS1_Y'] . ", " . $rFlags['R_POS1_Z'] . ") to (" .
+                $rFlags['R_POS2_X'] . ", " . $rFlags['R_POS2_Y'] . ", " . $rFlags['R_POS2_Z'] . ") P" . $rFlags['R_PRIORITY'] . "/n" .
+                array_count_values($rFlags) - 8 . " flags set.";
+    }
+
+    /**
+     * Wether or not the named region exists.
+     * @param string $region
+     * @return boolean
+     */
     public function isRegion($region) {
         if (isset($this->getAllRegionData()[$region])) {
             return true;
@@ -266,21 +305,17 @@ class YMLDataProvider {
         return false;
     }
 
+    /**
+     * Wether or not the named area is a valid world/region.
+     * @param string $area
+     * @return boolean
+     */
     public function isValidArea($area) {
         return Utilities::doesWorldExist($area) || $this->isRegion($area);
     }
 
-    //public static function checkArrayKey(&$array, $key) {
-    //    $array = (array) $array; // In case $array is null.
-    //    if (!isset($array[$key])) {
-    //        $array[$key] = null;
-    //    }
-    //    return $array;
-    //}
-
     public static function safeArrayGet($array, $key) {
         return (isset($array[$key])) ? $array[$key] : null;
-        //return self::checkArrayKey($array, $key)[$key];
     }
 
 }
