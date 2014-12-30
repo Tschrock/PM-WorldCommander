@@ -221,18 +221,16 @@ class WorldCommander extends PluginBase {
 
         switch (array_shift($args)) {
             case "help":
-                Utilities::sendSplitMessage($sender, "" +
-                        "'/wc flag' Commands: " +
-                        "\n    /wc flag help    - get this help." +
-                        "\n    /wc flag list    - list all flags." +
-                        "\n    /wc flag info <flag|area>  - get info for a flag/world/region." +
+                Utilities::sendSplitMessage($sender, "Commands: " .
+                        "\n    /wc flag help    - get this help." .
+                        "\n    /wc flag list    - list all flags." .
+                        "\n    /wc flag info <flag|area>  - get info for a flag/world/region." .
                         "\n    /wc flag set <area> <flag> <value>  - set the flag in an area."
                 );
                 break;
             case "ls":
             case "list":
-                Utilities::sendSplitMessage($sender, ""
-                        . "Available flags:\n"
+                Utilities::sendSplitMessage($sender, "Available flags:\n"
                         . $this->getFlagHelper()->getHelp()
                 );
                 break;

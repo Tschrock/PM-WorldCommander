@@ -65,7 +65,9 @@ class Utilities
     }
     
     public static function sendSplitMessage(CommandSender $sender, $message){
+        //var_dump($message);
         $splitStr = explode('\n', $message);
+        //var_dump($splitStr);
         foreach ($splitStr as $line) {
             $sender->sendMessage($line);
         }

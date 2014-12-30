@@ -80,6 +80,7 @@ class Flag implements iFlag
         if($this->wCommander->getDataProvider()->setFlag($area, $this->name, $args) == false){
             $sender->sendMessage("'" . $area . "' isn't a valid world/region.");
         }
+        $sender->sendMessage("Set '" + $this->getName() + "' flag to '" + $args + "' in area '" + $area + "'.");
     }
 
     public function getDefaultValue() {
