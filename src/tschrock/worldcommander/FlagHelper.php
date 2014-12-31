@@ -24,6 +24,7 @@ class FlagHelper {
      * @var array<iFlag>
      */
     private $flags;
+    private $enabled = false;
 
     public function __construct(WorldCommander $wCommander) {
         $this->wCommander = $wCommander;
@@ -37,7 +38,9 @@ class FlagHelper {
 
         // Register the flag and enable it.
         $this->flags[$iflag->getName()] = $iflag;
-        $iflag->onEnable();
+        if ($this->enabled) {
+            $this->enableFlag($iflag);
+        }
         $this->wCommander->getLogger()->info("registered flag: " . $iflag->getName());
 
         // Add the permission nodes for the flag.
@@ -47,6 +50,44 @@ class FlagHelper {
         Server::getInstance()->getPluginManager()->addPermission(
                 new Permission("tschrock.worldcommander.flags." . $iflag->getName() . ".bypass"
                 , "Allow a person to bypass the " . $iflag->getName() . "flag.", false));
+    }
+
+    public function enableFlags() {
+        foreach ($this->flags as $flag) {
+            $this->enableFlag($flag);
+        }
+        $this->enabled = true;
+    }
+
+    public function disableFlags() {
+        foreach ($this->flags as $flag) {
+            $this->disableFlag($flag);
+        }
+        $this->enabled = false;
+    }
+
+    public function enableFlag($flag) {
+        $iflag = $this->getFlag($flag);
+        if ($iflag === false) {
+            return;
+        }
+        if ($iflag->isDisabled()) {
+            $iflag->onEnable();
+            $iflag->setEnabled(true);
+            $this->wCommander->getLogger()->info("enabled flag: " . $iflag->getName());
+        }
+    }
+
+    public function disableFlag($flag) {
+        $iflag = $this->getFlag($flag);
+        if ($iflag === false) {
+            return;
+        }
+        if ($iflag->isEnabled()) {
+            $iflag->onDisable();
+            $iflag->setEnabled(false);
+            $this->wCommander->getLogger()->info("disabled flag: " . $iflag->getName());
+        }
     }
 
     public function unregisterFlag($flag) {
@@ -67,8 +108,9 @@ class FlagHelper {
         ));
 
         // Disable the flag and unregister the flag.
-        $this->flags[$iflag->getName()]->onDisable();
-        $this->wCommander->getLogger()->info("unregistered flag: " . $flag->getName());
+
+        $this->disableFlag($iflag);
+        $this->wCommander->getLogger()->info("unregistered flag: " . $iflag->getName());
         unset($this->flags[$iflag->getName()]);
     }
 

@@ -66,7 +66,7 @@ class WorldCommander extends PluginBase {
         foreach ($this->includedFlags as $flag) {
             $this->getFlagHelper()->registerFlag($flag);
         }
-
+        $this->getFlagHelper()->enableFlags();
         $this->saveDefaultConfig();
         $this->reloadConfig();
     }
@@ -77,6 +77,7 @@ class WorldCommander extends PluginBase {
      * Unregisters all built-in flags.
      */
     public function onDisable() {
+        $this->getFlagHelper()->disableFlags();
         foreach ($this->includedFlags as $flag) {
             $this->getFlagHelper()->unregisterFlag($flag);
         }
@@ -224,7 +225,7 @@ class WorldCommander extends PluginBase {
                 Utilities::sendSplitMessage($sender, "Commands: " .
                         "\n    /wc flag help    - get this help." .
                         "\n    /wc flag list    - list all flags." .
-                        "\n    /wc flag info <flag|area>  - get info for a flag/world/region." .
+                        "\n    /wc flag info <area/flag>  - get info for a flag/world/region." .
                         "\n    /wc flag set <area> <flag> <value>  - set the flag in an area."
                 );
                 break;
@@ -235,14 +236,19 @@ class WorldCommander extends PluginBase {
                 );
                 break;
             case "info":
-                if (Utilities::doesWorldExist($arg)) {
-                    $sender->sendMessage("World '$arg' has " . count($this->getDataProvider()->getWorldFlags($arg)) . " flags set.");
-                } elseif ($this->getDataProvider()->isRegion($arg)) {
-                    $sender->sendMessage("Region '$arg' has " . count($this->getDataProvider()->getRegionFlags($arg)) . " flags set.");
-                } elseif ($this->getFlagHelper()->getFlag($arg) != false) {
-                    $sender->sendMessage($this->getFlagHelper()->getHelp($arg));
-                } else {
-                    $sender->sendMessage("Usage: /wc flag <area> <flag> or /wc flag help");
+                if (count($args) == 1) {
+                    if (Utilities::doesWorldExist($args[0])) {
+                        $sender->sendMessage("World '$args[0]' has " . count($this->getDataProvider()->getWorldFlags($args[0])) . " flags set.");
+                    } elseif ($this->getDataProvider()->isRegion($args[0])) {
+                        $sender->sendMessage("Region '$args[0]' has " . count($this->getDataProvider()->getRegionFlags($args[0])) . " flags set.");
+                    } elseif ($this->getFlagHelper()->getFlag($args[0]) != false) {
+                        $sender->sendMessage($this->getFlagHelper()->getHelp($args[0]));
+                    } else {
+                        $sender->sendMessage("Usage: /wc flag <area> <flag> or /wc flag help");
+                    }
+                }
+                else {
+                        $sender->sendMessage("Usage: /wc flag info <area/flag> ");
                 }
                 break;
             case "set":
@@ -424,7 +430,7 @@ class WorldCommander extends PluginBase {
                     if (!($sender->hasPermission("tschrock.worldcommander.all") ||
                             $sender->hasPermission("tschrock.worldcommander.regions") ||
                             ($this->getConfig()->get(Utilities::CONFIG_OPS) && $sender->isOp()))) {
-                        $sender->sendMessage("You don't have permission to mannage regions!");
+                        $sender->sendMessage("You don't have permission to manage regions!");
                         return;
                     }
                     $sender->sendMessage(implode(", ", array_keys($this->getDataProvider()->getAllRegionData())));
@@ -433,6 +439,52 @@ class WorldCommander extends PluginBase {
                     $sender->sendMessage("Usage: /regions <pos1|pos2|create|delete|list>");
                     break;
             }
+        } else if ($sender instanceof \pocketmine\command\ConsoleCommandSender) {
+            switch (strtolower(array_shift($args))) {
+                case "pos1":
+                    $sender->sendMessage("You must be in-game to set positions.");
+                    break;
+                case "pos2":
+                    $sender->sendMessage("You must be in-game to set positions.");
+                    break;
+                case "new":
+                case "create":
+                    $sender->sendMessage("You must be in-game to create regions.");
+                    break;
+                case "delete":
+                case "remove":
+                case "rm":
+                    if (count($args) > 1) {
+                        if ($args[0] != $args[1]) {
+                            $sender->sendMessage("Region names must match! '/region delete <name> <confirm name>'");
+                        } elseif (!$this->getDataProvider()->isRegion($args[0])) {
+                            $sender->sendMessage("That region doesn't exist!");
+                        } else {
+                            $this->getDataProvider()->removeRegion($args[0]);
+                            $sender->sendMessage("Removed region '$args[0]'?");
+                        }
+                    } elseif (count($args) > 0) {
+                        if (!$this->getDataProvider()->isRegion($args[0])) {
+                            $sender->sendMessage("That region doesn't exist!");
+                        } else {
+                            $sender->sendMessage("Are you sure you want to delete '$args[0]'?");
+                            $sender->sendMessage("Use '/region delete <name> <confirm name>'");
+                        }
+                    } else {
+                        $sender->sendMessage("Usage: /region delete <name>");
+                    }
+
+                    break;
+                case "list":
+                case "ls":
+                    $sender->sendMessage(implode(", ", array_keys($this->getDataProvider()->getAllRegionData())));
+                    break;
+                default:
+                    $sender->sendMessage("Usage: /regions <pos1|pos2|create|delete|list>");
+                    break;
+            }
+        } else {
+            $sender->sendMessage("You don't have permission to manage regions!");
         }
     }
 

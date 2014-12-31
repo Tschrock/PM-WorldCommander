@@ -17,27 +17,29 @@ use pocketmine\plugin\Plugin;
  *
  * @author tyler
  */
-class Flag implements iFlag
-{
+class Flag implements iFlag {
 
     protected $name;
     protected $description;
     protected $aliases;
+
     /**
      *
      * @var Plugin
      */
     protected $owner;
     protected $usage;
+
+    /** @var bool */
+    private $isEnabled = false;
+
     /**
      *
      * @var WorldCommander
      */
     protected $wCommander;
-    
 
-    public function __construct($name, WorldCommander $wCommander, $description = "", $usage = "", array $aliases = array(),Plugin $owner = null)
-    {
+    public function __construct($name, WorldCommander $wCommander, $description = "", $usage = "", array $aliases = array(), Plugin $owner = null) {
         $this->name = $name;
         $this->description = $description;
         $this->usage = $usage;
@@ -46,18 +48,15 @@ class Flag implements iFlag
         $this->wCommander = $wCommander;
     }
 
-    public function getName()
-    {
+    public function getName() {
         return $this->name;
     }
 
-    public function getDescription()
-    {
+    public function getDescription() {
         return $this->description;
     }
 
-    public function getAliases()
-    {
+    public function getAliases() {
         return $this->aliases;
     }
 
@@ -65,19 +64,16 @@ class Flag implements iFlag
      * 
      * @return Plugin
      */
-    public function getOwnerPlugin()
-    {
+    public function getOwnerPlugin() {
         return $this->owner;
     }
 
-    public function getUsage()
-    {
+    public function getUsage() {
         return $this->usage;
     }
 
-    public function handleCommand(\pocketmine\command\CommandSender $sender, $area, $args)
-    {
-        if($this->wCommander->getDataProvider()->setFlag($area, $this->name, $args) == false){
+    public function handleCommand(\pocketmine\command\CommandSender $sender, $area, $args) {
+        if ($this->wCommander->getDataProvider()->setFlag($area, $this->name, $args) == false) {
             $sender->sendMessage("'" . $area . "' isn't a valid world/region.");
         }
         $sender->sendMessage("Set '" + $this->getName() + "' flag to '" + $args + "' in area '" + $area + "'.");
@@ -87,12 +83,40 @@ class Flag implements iFlag
         return null;
     }
 
-    public function onDisable(){
+    public function onEnable() {
         
     }
 
-    public function onEnable(){
+    public function onDisable() {
         
+    }
+
+    /**
+     * @return bool
+     */
+    public final function isEnabled() {
+        return $this->isEnabled === true;
+    }
+
+    /**
+     * @param bool $boolean
+     */
+    public final function setEnabled($boolean = true) {
+        if ($this->isEnabled !== $boolean) {
+            $this->isEnabled = $boolean;
+            if ($this->isEnabled === true) {
+                $this->onEnable();
+            } else {
+                $this->onDisable();
+            }
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public final function isDisabled() {
+        return $this->isEnabled === false;
     }
 
 }
