@@ -38,7 +38,7 @@ class BuildFlag extends Flag implements Listener {
     }
 
     public function onEnable() {
-        Server::getInstance()->getPluginManager()->registerEvents($this, $this->owner);
+        $this->owner->getServer()->getPluginManager()->registerEvents($this, $this->owner);
     }
 
     public function getDefaultValue() {

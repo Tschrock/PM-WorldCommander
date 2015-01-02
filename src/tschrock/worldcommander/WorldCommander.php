@@ -41,6 +41,13 @@ class WorldCommander extends PluginBase {
         self::$instance = $this;
     }
 
+    public function registerFlag(flag\iFlag $iflag){
+        $this->getFlagHelper()->registerFlag($iflag);
+    }
+    public function unregisterFlag(flag\iFlag $iflag){
+        $this->getFlagHelper()->registerFlag($iflag);
+    }
+    
     /**
      * The onLoad function.
      */

@@ -35,11 +35,11 @@ class PvPFlag extends Flag implements Listener {
     }
 
     public function getDefaultValue() {
-        return Server::getInstance()->getProperty("pvp");
+        return $this->owner->getServer()->getProperty("pvp");
     }
 
     public function onEnable() {
-        Server::getInstance()->getPluginManager()->registerEvents($this, $this->owner);
+        $this->owner->getServer()->getPluginManager()->registerEvents($this, $this->owner);
     }
 
     public function handleCommand(CommandSender $sender, $area, $args) {

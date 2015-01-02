@@ -230,4 +230,19 @@ class FlagHelper {
         return $rtn;
     }
 
+    /**
+     * Sets the value of the flag for a specified area.
+     * @param Position|string $area
+     * @param iFlag|string $flag
+     * @param mixed $value
+     * @return boolean
+     */
+    public function setFlagValue($area, $flag, $value) {
+        $iflag = $this->getFlag($flag);
+        if ($iflag === false) {
+            return false;
+        }
+        
+        return $this->wCommander->getDataProvider()->setFlag($area, $iflag->getName(), $value);
+    }
 }

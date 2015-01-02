@@ -11,17 +11,23 @@ WorldCommander works like the Bukkit plugin WorldGuard: You control things in wo
 Flags can be set using `/wc flag <world/region> <flag> <arguments>`
 Available flags:
  - `pvp <true/false>`
-    - Sets wether or not players can pvp in an area. Defaults to the value in server.properties.
+    - Sets whether or not players can pvp in an area. 
+    - Defaults to the value in `server.properties`.
  - `gamemode <survival/creative>`
-    - Sets the gamemode of a world. Defaults to the value in server.properties.
+    - Sets the gamemode of a world.
+    - Defaults to the value in `server.properties`.
  - `spawnprotection <radius>`
-    - Sets the radius of spawnprotection in a world. Defaults to the value in server.properties.
+    - Sets the radius of spawnprotection in a world.
+    - Defaults to the value in `server.properties`.
+    - If the value in `server.properties` is larger, it will override this flag.
  - `time <time/equation>`
-    - Sets the time. Defaults to "auto".
+    - Sets the time.
     - Can be set to "sunrise", "morning", "day", "noon", "afternoon", "evening", "sunset", "night", "midnight", "realtime", "auto", or "now".
     - You can also use an equation. (For ex. "auto*2" would be double normal time).
+    - Is unset by default.
+    - Can't be bypassed and will override normal `/time` commands.
  - `build <true/false> <exceptions>`
-    - Sets wether or not people can build in a region.
+    - Sets whether or not people can build in a region.
     - Can set a list of exceptions.
     - Is unset by default.
 
@@ -33,8 +39,60 @@ Defining a region:
  - Then use `/region create <name> <priority>` to create a region from your selection. 
 
 ##Commands
+ - `/wc` - Main WorldCommander command.
+ - `/wc create` - Create a new world.
+ - `/wc load` - Load a world.
+ - `/wc unload` - Unload a world.
+ - `/wc flags` - Manage flags.
+ - `/wc regions` - Manage regions.
 
 ##Aliases
+ - `/wc create` => `/wcc`
+ - `/wc load` => `/wcl`
+ - `/wc unload` => `/wcu`
+ - `/wc flags` => `/wcf`
+ - `/wc regions` => `/wcr` or `/regions`
 
 ##Permissions
 
+ - `tschrock.worldcommander.all` - Allows the user to use all WorldCommander commands.<br /><br />
+ - `tschrock.worldcommander.worlds` - Allows the user to manage worlds.
+ - `tschrock.worldcommander.worlds.create` - Allows the user to create worlds.
+ - `tschrock.worldcommander.worlds.load` - Allows the user to load worlds.
+ - `tschrock.worldcommander.worlds.unload` - Allows the user to unload worlds.<br /><br />
+ - `tschrock.worldcommander.tp` - Allows the user to teleport to different worlds.
+ - `tschrock.worldcommander.tp.other` - Allows the user to teleport other players to differant worlds.<br /><br />
+ - `tschrock.worldcommander.flags` - Allows the user to change all flags in a world.
+ - `tschrock.worldcommander.flags.exclude` - Allows the user to bypass all flags in a world.
+ - `tschrock.worldcommander.flags.<Flag Name>.edit` - Allow a person to change the flag.
+ - `tschrock.worldcommander.flags.<Flag Name>.bypass` - Allow a person to bypass the flag.<br /><br />
+ - `tschrock.worldcommander.regions` - Allows the user to manage regions.
+ - `tschrock.worldcommander.regions.create` - Allows the user to create regions.
+ - `tschrock.worldcommander.regions.delete` - Allows the user to delete regions.
+
+##API/Custom Flags
+Plugins can provide custom flags to WorldCommander:
+
+1. Create a class that extends `tschrock\worldcommander\flag\Flag`.
+2. In your plugin's `onEnable()`:
+    - Get a reference to WorldCommander:
+       - `$this->wCommander = $this->getServer()->getPluginManager()->getPlugin("WorldCommander");`
+    - Create a new instance of your flag:
+       - `$this->yourCustomFlag = new CustomFlag($this->wCommander, $this);` 
+    - Register your flag with WorldCommander:
+       - `$this->wCommander->registerFlag($this->yourCustomFlag);`
+3. In your plugin's `onDisable()`:
+    - Unregister your flag from WorldCommander:
+       - `$this->wCommander->unregisterFlag($this->yourCustomFlag);`
+
+Custom flags should provide their own functionality (registering event handlers, etc). A good example is `tschrock\worldcommander\flag\PvPFlag`.
+
+Common functions:
+ - `$this->wCommander->getFlagHelper()->canBypassFlag($player, $flag);`
+    - Gets whether or not a player can bypass a flag.
+ - `$this->wCommander->getFlagHelper()->getFlagValue($areaOrPosition, $flag);`
+    - Gets the value of a flag for an area.
+ - `$this->wCommander->getFlagHelper()->setFlagValue($area, $flag, $value);`
+    - Sets the value of a flag for an area.
+ - `$this->wCommander->getDataProvider()->getRegion($position);`
+    - Gets a list of regions that `$position` is in, ordered by priority.
