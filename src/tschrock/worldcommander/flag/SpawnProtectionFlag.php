@@ -86,7 +86,7 @@ class SpawnProtectionFlag extends Flag implements Listener {
     }
     
     public function checkSpawnProtection(Player $player, Block $block, BlockEvent $event){
-        if (!$this->wCommander->getFlagHelper()->canBypassFlag($player, $this)) {
+        if (!$this->wCommander->getFlagHelper()->canBypassFlag($player, $block, $this)) {
             $world = $player->getLevel();
             $protRadius = $this->wCommander->getFlagHelper()->getFlagValue($player, $this);
             if ($protRadius > -1) {

@@ -42,14 +42,6 @@ class FlagHelper {
             $this->enableFlag($iflag);
         }
         $this->wCommander->getLogger()->info("registered flag: " . $iflag->getName());
-
-        // Add the permission nodes for the flag.
-        Server::getInstance()->getPluginManager()->addPermission(
-                new Permission("tschrock.worldcommander.flags." . $iflag->getName() . ".edit"
-                , "Allow a person to change the " . $iflag->getName() . "flag.", false));
-        Server::getInstance()->getPluginManager()->addPermission(
-                new Permission("tschrock.worldcommander.flags." . $iflag->getName() . ".bypass"
-                , "Allow a person to bypass the " . $iflag->getName() . "flag.", false));
     }
 
     public function enableFlags() {
@@ -97,18 +89,7 @@ class FlagHelper {
             return;
         }
 
-        // Remove the permission nodes for the flag.
-        Server::getInstance()->getPluginManager()->removePermission(
-                Server::getInstance()->getPluginManager()->getPermission(
-                        "tschrock.worldcommander.flags." . $iflag->getName() . ".edit"
-        ));
-        Server::getInstance()->getPluginManager()->removePermission(
-                Server::getInstance()->getPluginManager()->getPermission(
-                        "tschrock.worldcommander.flags." . $iflag->getName() . ".bypass"
-        ));
-
         // Disable the flag and unregister the flag.
-
         $this->disableFlag($iflag);
         $this->wCommander->getLogger()->info("unregistered flag: " . $iflag->getName());
         unset($this->flags[$iflag->getName()]);
@@ -173,15 +154,21 @@ class FlagHelper {
      * @param iFlag|string $flag
      * @return boolean
      */
-    public function canEditFlag(CommandSender $sender, $flag) {
+    public function canEditFlag(CommandSender $sender, $area, $flag) {
         $iflag = $this->getFlag($flag);
-        if ($iflag === false) {
+        if($area instanceof Position) {
+            $area = $this->wCommander->getDataProvider()->getAreaForPosition($area);
+        }
+        if ($iflag === false || !$this->wCommander->getDataProvider()->isValidArea($area)) {
             return false;
         }
         return $sender->hasPermission("tschrock.worldcommander.all") ||
                 ($this->wCommander->getConfig()->get(Utilities::CONFIG_OPS) && $sender->isOp()) ||
                 $sender->hasPermission("tschrock.worldcommander.flags") ||
-                $sender->hasPermission("tschrock.worldcommander.flags." . $iflag->getName() . ".edit");
+                $sender->hasPermission("tschrock.worldcommander.flags.edit") ||
+                $sender->hasPermission("tschrock.worldcommander.flag." . $iflag->getName() . ".edit") ||
+                $sender->hasPermission("tschrock.worldcommander.area." . $area . ".edit") ||
+                $sender->hasPermission("tschrock.worldcommander.areaflag." . $area . "." . $iflag->getName() . ".edit");
     }
 
     /**
@@ -190,15 +177,23 @@ class FlagHelper {
      * @param iFlag|string $flag
      * @return boolean
      */
-    public function canBypassFlag(CommandSender $sender, $flag) {
+    public function canBypassFlag(CommandSender $sender, $area, $flag) {
         $iflag = $this->getFlag($flag);
-        if ($iflag === false) {
+        if($area instanceof Position) {
+            $area = $this->wCommander->getDataProvider()->getAreaForPosition($area);
+        }
+        if ($iflag === false || !$this->wCommander->getDataProvider()->isValidArea($area)) {
             return false;
         }
+        
+        
         return ($this->wCommander->getConfig()->get(Utilities::CONFIG_EXCLD_WCALL) && $sender->hasPermission("tschrock.worldcommander.all")) ||
                 ($this->wCommander->getConfig()->get(Utilities::CONFIG_EXCLD_OP) && $sender->isOp()) ||
                 $sender->hasPermission("tschrock.worldcommander.flags") ||
-                $sender->hasPermission("tschrock.worldcommander.flags." . $iflag->getName() . ".bypass");
+                $sender->hasPermission("tschrock.worldcommander.flags.bypass") ||
+                $sender->hasPermission("tschrock.worldcommander.flag." . $iflag->getName() . ".bypass") ||
+                $sender->hasPermission("tschrock.worldcommander.area." . $area . ".bypass") ||
+                $sender->hasPermission("tschrock.worldcommander.areaflag." . $area . "." . $iflag->getName() . ".bypass");
     }
 
     /**

@@ -318,4 +318,13 @@ class YMLDataProvider {
         return (isset($array[$key])) ? $array[$key] : null;
     }
 
+    
+    public function getAreaForPosition(Position $position){
+        $regions = $this->getRegion($position);
+        if ($regions != null) {
+            return array_shift($regions);
+        } else {
+            return $position->getLevel()->getName();
+        }
+    }
 }

@@ -64,7 +64,7 @@ class PvPFlag extends Flag implements Listener {
                 $attacker = $event->getDamager();
                 if ($event->getFinalDamage() != 0) {
                     # Check PVP
-                    if (!$this->wCommander->getFlagHelper()->canBypassFlag($attacker, $this)) {
+                    if (!$this->wCommander->getFlagHelper()->canBypassFlag($attacker, $attacker, $this)) {
                         if (!$this->wCommander->getFlagHelper()->getFlagValue($attacker, $this)) {
                             $attacker->sendMessage("You are not allowed to PvP in this area!");
                             $event->setCancelled();

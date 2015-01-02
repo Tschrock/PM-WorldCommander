@@ -82,7 +82,7 @@ class GamemodeFlag extends Flag implements Listener {
             $world = $world->getName();
         }
 
-        $isExcluded = $this->wCommander->getFlagHelper()->canBypassFlag($player, $this);
+        $isExcluded = $this->wCommander->getFlagHelper()->canBypassFlag($player, $world, $this);
         $worldGamemode = $this->wCommander->getFlagHelper()->getFlagValue($world, $this);
 
         if ($worldGamemode === "none") {

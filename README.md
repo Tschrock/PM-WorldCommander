@@ -60,15 +60,21 @@ Defining a region:
  - `tschrock.worldcommander.worlds.create` - Allows the user to create worlds.
  - `tschrock.worldcommander.worlds.load` - Allows the user to load worlds.
  - `tschrock.worldcommander.worlds.unload` - Allows the user to unload worlds.<br /><br />
- - `tschrock.worldcommander.tp` - Allows the user to teleport to different worlds.
+ - `tschrock.worldcommander.tp` - Allows the user to teleport himself or others to different worlds.
+ - `tschrock.worldcommander.tp.self` - Allows the user to teleport to different worlds.
  - `tschrock.worldcommander.tp.other` - Allows the user to teleport other players to differant worlds.<br /><br />
- - `tschrock.worldcommander.flags` - Allows the user to change all flags in a world.
- - `tschrock.worldcommander.flags.exclude` - Allows the user to bypass all flags in a world.
- - `tschrock.worldcommander.flags.<Flag Name>.edit` - Allow a person to change the flag.
- - `tschrock.worldcommander.flags.<Flag Name>.bypass` - Allow a person to bypass the flag.<br /><br />
+ - `tschrock.worldcommander.flags` - Allows the user to change and bypass all flags in all areas.
+ - `tschrock.worldcommander.flags.edit` - Allows the user to change all flags in all areas.
+ - `tschrock.worldcommander.flags.bypass` - Allows the user to bypass all flags in all areas.<br /><br />
  - `tschrock.worldcommander.regions` - Allows the user to manage regions.
  - `tschrock.worldcommander.regions.create` - Allows the user to create regions.
- - `tschrock.worldcommander.regions.delete` - Allows the user to delete regions.
+ - `tschrock.worldcommander.regions.delete` - Allows the user to delete regions.<br /><br />
+ - `tschrock.worldcommander.flag.<Flag Name>.edit` - Allow a person to change a flag in all areas.
+ - `tschrock.worldcommander.flag.<Flag Name>.bypass` - Allow a person to bypass a flag in all areas.
+ - `tschrock.worldcommander.area.<Area Name>.edit` - Allow a person to change all flags in an area.
+ - `tschrock.worldcommander.area.<Area Name>.bypass` - Allow a person to bypass all flags in an area.
+ - `tschrock.worldcommander.areaflag.<Area Name>.<Flag Name>.edit` - Allow a person to change a flag in an area.
+ - `tschrock.worldcommander.areaflag.<Area Name>.<Flag Name>.bypass` - Allow a person to bypass a flag in an area.
 
 ##API/Custom Flags
 Plugins can provide custom flags to WorldCommander:
@@ -88,7 +94,9 @@ Plugins can provide custom flags to WorldCommander:
 Custom flags should provide their own functionality (registering event handlers, etc). A good example is `tschrock\worldcommander\flag\PvPFlag`.
 
 Common functions:
- - `$this->wCommander->getFlagHelper()->canBypassFlag($player, $flag);`
+ - `$this->wCommander->getFlagHelper()->canEditFlag($player, $areaOrPosition, $flag);`
+    - Gets whether or not a player can edit a flag.
+ - `$this->wCommander->getFlagHelper()->canBypassFlag($player, $areaOrPosition, $flag);`
     - Gets whether or not a player can bypass a flag.
  - `$this->wCommander->getFlagHelper()->getFlagValue($areaOrPosition, $flag);`
     - Gets the value of a flag for an area.

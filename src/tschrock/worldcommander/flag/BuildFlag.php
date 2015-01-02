@@ -104,7 +104,7 @@ class BuildFlag extends Flag implements Listener {
                     "' is trying to edit a block '" . $block->getName() . "' in world '" . $player->getLevel()->getName() . "'");
             return;
         }
-        if (!$this->wCommander->getFlagHelper()->canBypassFlag($player, $this)) {
+        if (!$this->wCommander->getFlagHelper()->canBypassFlag($player, $block, $this)) {
             $world = $player->getLevel();
             $regions = $this->wCommander->getDataProvider()->getRegion($block);
             $canBuildBool = null;

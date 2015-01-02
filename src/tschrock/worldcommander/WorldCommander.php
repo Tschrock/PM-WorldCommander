@@ -41,13 +41,14 @@ class WorldCommander extends PluginBase {
         self::$instance = $this;
     }
 
-    public function registerFlag(flag\iFlag $iflag){
+    public function registerFlag(flag\iFlag $iflag) {
         $this->getFlagHelper()->registerFlag($iflag);
     }
-    public function unregisterFlag(flag\iFlag $iflag){
+
+    public function unregisterFlag(flag\iFlag $iflag) {
         $this->getFlagHelper()->registerFlag($iflag);
     }
-    
+
     /**
      * The onLoad function.
      */
@@ -253,9 +254,8 @@ class WorldCommander extends PluginBase {
                     } else {
                         $sender->sendMessage("Usage: /wc flag <area> <flag> or /wc flag help");
                     }
-                }
-                else {
-                        $sender->sendMessage("Usage: /wc flag info <area/flag> ");
+                } else {
+                    $sender->sendMessage("Usage: /wc flag info <area/flag> ");
                 }
                 break;
             case "set":
@@ -287,7 +287,11 @@ class WorldCommander extends PluginBase {
                     $sender->sendMessage("That flag doesn't exist.");
                     return;
                 } else {
-                    $iflag->handleCommand($sender, $area, $args);
+                    if ($this->getFlagHelper()->canEditFlag($sender, $area, $iflag)) {
+                        $iflag->handleCommand($sender, $area, $args);
+                    } else {
+                        $sender->sendMessage("You don't have permission to edit that flag in that area!");
+                    }
                 }
 
                 break;
@@ -303,6 +307,7 @@ class WorldCommander extends PluginBase {
         if (count($args) == 1) {
             if (!($sender->hasPermission("tschrock.worldcommander.all") ||
                     $sender->hasPermission("tschrock.worldcommander.tp") ||
+                    $sender->hasPermission("tschrock.worldcommander.tp.self") ||
                     ($this->getConfig()->get(Utilities::CONFIG_OPS) && $sender->isOp()))) {
                 $sender->sendMessage("You don't have permission to teleport.");
                 return;
@@ -319,8 +324,10 @@ class WorldCommander extends PluginBase {
             }
         } elseif (count($args) == 2) {
             if (!($sender->hasPermission("tschrock.worldcommander.all") ||
+                    $sender->hasPermission("tschrock.worldcommander.tp") ||
                     $sender->hasPermission("tschrock.worldcommander.tp.other") ||
-                    ($this->getConfig()->get(Utilities::CONFIG_OPS) && $sender->isOp()))) {
+                    ($this->getConfig()->get(Utilities::CONFIG_OPS) && $sender->isOp()) ||
+                    $sender->getName() == $args[0])) {
                 $sender->sendMessage("You don't have permission to teleport other players.");
                 return;
             }
