@@ -142,7 +142,7 @@ class FlagHelper {
             }
             return $rtn;
         } elseif (($iflag = $this->getFlag($flag)) instanceof iFlag) {
-            $rtn = "/wc flag <world> " . $iflag->getUsage();
+            $rtn = "/wc flag set <area> " . $iflag->getUsage();
             $rtn .= $short ? "" : "\n  - " . $iflag->getDescription();
             return $rtn;
         }
