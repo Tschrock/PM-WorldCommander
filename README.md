@@ -3,13 +3,22 @@ World-Commander
 Take command of your worlds!
  - Control pvp, spawnprotection, etc. on a per-world basis.
  - Define regions for more control on where things are allowed.
- - Easily create and load new worlds.
- - Teleport between all of your worlds with a simple command.
 
 ##Flags
 WorldCommander works like the Bukkit plugin WorldGuard: You control things in worlds/regions by setting flags.
-Flags can be set using `/wc flag <world/region> <flag> <arguments>`
-Available flags:
+Flags can be set using `/wc flag set <world/region> <flag> <arguments>`
+
+####Flag Commands:
+ - `/wc flag help`                      - get this help.
+ - `/wc flag list`                      - list all flags.
+ - `/wc flag info <area/flag>`          - get info for a flag/world/region.
+ - `/wc flag set <area> <flag> <arguments>` - set the flag in an area.
+ - `/wc flag unset <area> <flag>`       - unsets the flag in an area.
+
+`<area>` is the name of any world or region. You can also use `@world` and `@region` in-game to use your location.
+ 
+
+####Available flags:
  - `pvp <true/false>`
     - Sets whether or not players can pvp in an area. 
     - Defaults to the value in `server.properties`.
@@ -40,29 +49,16 @@ Defining a region:
 
 ##Commands
  - `/wc` - Main WorldCommander command.
- - `/wc create` - Create a new world.
- - `/wc load` - Load a world.
- - `/wc unload` - Unload a world.
  - `/wc flags` - Manage flags.
  - `/wc regions` - Manage regions.
 
 ##Aliases
- - `/wc create` => `/wcc`
- - `/wc load` => `/wcl`
- - `/wc unload` => `/wcu`
  - `/wc flags` => `/wcf`
  - `/wc regions` => `/wcr` or `/regions`
 
 ##Permissions
 
  - `tschrock.worldcommander.all` - Allows the user to use all WorldCommander commands.<br /><br />
- - `tschrock.worldcommander.worlds` - Allows the user to manage worlds.
- - `tschrock.worldcommander.worlds.create` - Allows the user to create worlds.
- - `tschrock.worldcommander.worlds.load` - Allows the user to load worlds.
- - `tschrock.worldcommander.worlds.unload` - Allows the user to unload worlds.<br /><br />
- - `tschrock.worldcommander.tp` - Allows the user to teleport himself or others to different worlds.
- - `tschrock.worldcommander.tp.self` - Allows the user to teleport to different worlds.
- - `tschrock.worldcommander.tp.other` - Allows the user to teleport other players to differant worlds.<br /><br />
  - `tschrock.worldcommander.flags` - Allows the user to change and bypass all flags in all areas.
  - `tschrock.worldcommander.flags.edit` - Allows the user to change all flags in all areas.
  - `tschrock.worldcommander.flags.bypass` - Allows the user to bypass all flags in all areas.<br /><br />

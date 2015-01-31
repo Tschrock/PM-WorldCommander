@@ -11,58 +11,23 @@ website: http://www.tschrock.net
 commands:
  wc:
   description: Main WorldCommander command.
-  usage: "/wc <create|load|unload|flags|tp|regions> [worldname]"
- wcc:
-  description: Create worlds.
-  usage: "/wcc <worldname> [seed [generator [generator options]]]"
- wcl:
-  description: Load worlds.
-  usage: "/wcl <worldname>"
- wcu:
-  description: Unload worlds.
-  usage: "/wcu <worldname>"
+  usage: "/wc <flags|regions>"
  wcf:
   description: Manage flags.
-  usage: "/wcf <area> <flag> <value>"
- wctp:
-  description: Tp to a different world.
-  usage: "/wctp [player] <world>"
+  usage: "/wcf <help|list|info|set|unset>"
  wcr:
   description: Edit regions in a world.
-  usage: "/wcr"
- regions:
-  description:  Edit regions in a world.
-  usage: "regions"
- region:
-  description:  Edit regions in a world.
-  usage: "region"
+  usage: "/wcr <pos1|pos2|create|delete|list>"
+  aliases: ['regions', 'region']
 permissions:
  tschrock.worldcommander.all:
   description: "Allows the user to use all WorldCommander commands."
-  default: false
- tschrock.worldcommander.worlds:
-  description: "Allows the user to manage worlds."
-  default: false
- tschrock.worldcommander.worlds.create:
-  description: "Allows the user to create worlds."
-  default: false
- tschrock.worldcommander.worlds.load:
-  description: "Allows the user to load worlds."
-  default: false
- tschrock.worldcommander.worlds.unload:
-  description: "Allows the user to unload worlds."
   default: false
  tschrock.worldcommander.flags:
   description: "Allows the user to change all flags in a world."
   default: false
  tschrock.worldcommander.flags.exclude:
   description: "Allows the user to bypass all flags in a world."
-  default: false
- tschrock.worldcommander.tp:
-  description: "Allows the user to teleport to different worlds."
-  default: false
- tschrock.worldcommander.tp.other:
-  description: "Allows the user to teleport other players to differant worlds."
   default: false
  tschrock.worldcommander.regions:
   description: "Allows the user to manage regions."
