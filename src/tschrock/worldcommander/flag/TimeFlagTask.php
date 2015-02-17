@@ -28,7 +28,7 @@ class TimeFlagTask extends PluginTask {
     }
 
     public function updateWorldTime(\pocketmine\level\Level $world, $currentTick) {
-        $timeData = WorldCommander::getInstance()->getFlagHelper()->getFlagValue($world->getName(), $this->flag);
+        $timeData = $this->owner->getFlagHelper()->getFlagValue($world->getName(), $this->flag);
         if ($timeData !== null) {
             $time = $this->calculateTime($timeData, $currentTick, $world->getTime());
             $world->setTime($time);

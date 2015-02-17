@@ -16,9 +16,11 @@ class YMLDataProvider {
 
     protected $worldConfig = false;
     protected $dataFile;
+    protected $plugin;
 
-    public function __construct($dataFile) {
+    public function __construct($dataFile, $plugin) {
         $this->dataFile = $dataFile;
+        $this->plugin = $plugin;
     }
 
     /**
@@ -230,7 +232,7 @@ class YMLDataProvider {
      * @return boolean
      */
     public function setFlag($area, $flag, $value) {
-        if (Utilities::doesWorldExist($area)) {
+        if (Utilities::doesWorldExist($this->plugin->getServer(), $area)) {
             $this->setWorldFlag($area, $flag, $value);
         } elseif (isset($this->getAllRegionFlags()[$area])) {
             $this->setRegionFlag($area, $flag, $value);
@@ -311,7 +313,7 @@ class YMLDataProvider {
      * @return boolean
      */
     public function isValidArea($area) {
-        return Utilities::doesWorldExist($area) || $this->isRegion($area);
+        return Utilities::doesWorldExist($this->plugin->getServer(), $area) || $this->isRegion($area);
     }
 
     public static function safeArrayGet($array, $key) {

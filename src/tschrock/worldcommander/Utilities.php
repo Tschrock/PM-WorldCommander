@@ -14,6 +14,7 @@ class Utilities
     const CONFIG_WORLDS = "worlds";
     const CONFIG_TIME = "timeUpdateInterval";
     
+    
     /**
      * Tests whether or not a point lies between two other points.
      * 
@@ -34,9 +35,9 @@ class Utilities
      * @param string $worldName The name of the world.
      * @return boolean
      */
-    public static function doesWorldExist($worldName)
+    public static function doesWorldExist($server, $worldName)
     {
-        return file_exists(Server::getInstance()->getDataPath() . "worlds/" . $worldName);
+        return file_exists($server->getDataPath() . "worlds/" . $worldName);
     }
 
     /**

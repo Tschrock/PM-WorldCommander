@@ -10,14 +10,6 @@ use pocketmine\Player;
 
 class WorldCommander extends PluginBase {
 
-    /** @var WorldCommander */
-    private static $instance = null;
-
-    /** @return WorldCommander */
-    public static function getInstance() {
-        return self::$instance;
-    }
-
     /** @var YMLDataProvider */
     protected $dataProvider;
 
@@ -37,10 +29,6 @@ class WorldCommander extends PluginBase {
     /** @var array<iFlag> */
     protected $includedFlags;
 
-    public function __construct() {
-        self::$instance = $this;
-    }
-
     public function registerFlag(flag\iFlag $iflag) {
         $this->getFlagHelper()->registerFlag($iflag);
     }
@@ -53,7 +41,7 @@ class WorldCommander extends PluginBase {
      * The onLoad function.
      */
     public function onLoad() {
-        $this->dataProvider = new YMLDataProvider($this->getDataFolder() . "worldData.yml");
+        $this->dataProvider = new YMLDataProvider($this->getDataFolder() . "worldData.yml", $this);
         $this->flagHelper = new FlagHelper($this);
 
         $this->includedFlags = array(
@@ -152,7 +140,7 @@ class WorldCommander extends PluginBase {
                 break;
             case "info":
                 if (count($args) == 1) {
-                    if (Utilities::doesWorldExist($args[0])) {
+                    if (Utilities::doesWorldExist($this->getServer(), $args[0])) {
                         $sender->sendMessage("World '$args[0]' has " . count($this->getDataProvider()->getWorldFlags($args[0])) . " flags set.");
                     } elseif ($this->getDataProvider()->isRegion($args[0])) {
                         $sender->sendMessage("Region '$args[0]' has " . count($this->getDataProvider()->getRegionFlags($args[0])) . " flags set.");
@@ -232,7 +220,7 @@ class WorldCommander extends PluginBase {
                     return;
                 } else {
                     if ($this->getFlagHelper()->canEditFlag($sender, $area, $iflag)) {
-                        if (Utilities::doesWorldExist($area)) {
+                        if (Utilities::doesWorldExist($this->getServer(), $area)) {
 
                             $allWorldData = $this->getDataProvider()->getAllWorldData();
                             unset($allWorldData[$area][$iflag->getName()]);

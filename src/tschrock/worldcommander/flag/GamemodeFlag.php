@@ -35,11 +35,11 @@ class GamemodeFlag extends Flag implements Listener {
     }
 
     public function onEnable() {
-        Server::getInstance()->getPluginManager()->registerEvents($this, $this->owner);
+        $this->owner->getServer()->getPluginManager()->registerEvents($this, $this->owner);
     }
 
     public function getDefaultValue() {
-        return Server::getInstance()->getDefaultGamemode();
+        return $this->owner->getServer()->getDefaultGamemode();
     }
 
     /**
@@ -89,7 +89,7 @@ class GamemodeFlag extends Flag implements Listener {
             return true;
         } elseif (($gamemodeTo = Server::getGamemodeFromString($worldGamemode)) == -1) {
             $this->owner->getLogger()->warning($worldGamemode . ' isn\'t a valid gamemode! Using default gamemode instead!');
-            $gamemodeTo = Server::getInstance()->getDefaultGamemode();
+            $gamemodeTo = $this->owner->getServer()->getDefaultGamemode();
         }
 
         $gamemodeNeedsChanged = $player->getGamemode() !== ($gamemodeTo);
