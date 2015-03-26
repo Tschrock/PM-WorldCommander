@@ -8,8 +8,8 @@
 
 namespace tschrock\worldcommander\flag;
 
-use tschrock\worldcommander\flag\iFlag;
 use tschrock\worldcommander\WorldCommander;
+use tschrock\worldcommander\data\Area;
 use pocketmine\plugin\Plugin;
 
 /**
@@ -72,10 +72,8 @@ class Flag implements iFlag {
         return $this->usage;
     }
 
-    public function handleCommand(\pocketmine\command\CommandSender $sender, $area, $args) {
-        if ($this->wCommander->getDataProvider()->setFlag($area, $this->name, $args) == false) {
-            $sender->sendMessage("'" . $area . "' isn't a valid world/region.");
-        }
+    public function handleCommand(\pocketmine\command\CommandSender $sender, Area $area, $args) {
+        $area->setFlag($this, $args);
         $sender->sendMessage("Set '" + $this->getName() + "' flag to '" + $args + "' in area '" + $area + "'.");
     }
 

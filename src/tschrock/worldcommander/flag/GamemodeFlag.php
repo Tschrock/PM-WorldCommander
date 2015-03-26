@@ -9,6 +9,7 @@
 namespace tschrock\worldcommander\flag;
 
 use tschrock\worldcommander\WorldCommander;
+use tschrock\worldcommander\data\Area;
 use pocketmine\plugin\Plugin;
 use pocketmine\Player;
 use pocketmine\Server;
@@ -75,17 +76,19 @@ class GamemodeFlag extends Flag implements Listener {
         $this->checkPlayerGamemode($event->getPlayer());
     }
 
-    public function checkPlayerGamemode(Player $player, $world = false) {
-        if ($world === false) {
-            $world = $player->getLevel()->getName();
-        } else {
-            $world = $world->getName();
-        }
+    /**
+     * @param Player $player
+     * @param \pocketmine\level\Level $level
+     * @return boolean
+     */
+    public function checkPlayerGamemode(Player $player, $level = false) {
+        $level = ($level === false) ? $player->getLevel() : $level;
 
-        $isExcluded = $this->wCommander->getFlagHelper()->canBypassFlag($player, $world, $this);
-        $worldGamemode = $this->wCommander->getFlagHelper()->getFlagValue($world, $this);
+        $world = $this->wCommander->getDataManager()->getWorld($level);
+        $isExcluded = $this->wCommander->getFlagManager()->canBypassFlag($player, $world, $this);
+        $worldGamemode = $world->getFlag($this);
 
-        if ($worldGamemode === "none") {
+        if ($worldGamemode === "none" || $worldGamemode === null) {
             return true;
         } elseif (($gamemodeTo = Server::getGamemodeFromString($worldGamemode)) == -1) {
             $this->owner->getLogger()->warning($worldGamemode . ' isn\'t a valid gamemode! Using default gamemode instead!');
@@ -102,7 +105,7 @@ class GamemodeFlag extends Flag implements Listener {
         }
     }
 
-    public function handleCommand(CommandSender $sender, $area, $args) {
+    public function handleCommand(CommandSender $sender, Area $area, $args) {
         $gmode = implode(" ", $args);
         if (Server::getGamemodeFromString($gmode) == -1) {
             $sender->sendMessage("'$gmode' isn't a correct gamemode.");

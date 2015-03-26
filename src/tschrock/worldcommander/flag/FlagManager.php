@@ -1,19 +1,25 @@
 <?php
 
-namespace tschrock\worldcommander;
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 
+namespace tschrock\worldcommander\flag;
+
+use tschrock\worldcommander\data\Area;
+use tschrock\worldcommander\WorldCommander;
+use tschrock\worldcommander\Utilities;
 use pocketmine\command\CommandSender;
 use pocketmine\level\Position;
-use tschrock\worldcommander\flag\iFlag;
-use pocketmine\Server;
-use pocketmine\permission\Permission;
 
 /**
- * Description of FlagHandler
+ * Description of FlagManager
  *
  * @author tyler
  */
-class FlagHelper {
+class FlagManager {
 
     /**
      * @var WorldCommander
@@ -21,7 +27,7 @@ class FlagHelper {
     private $wCommander;
 
     /**
-     * @var array<iFlag>
+     * @var iFlag[]
      */
     private $flags;
     private $enabled = false;
@@ -126,24 +132,35 @@ class FlagHelper {
         }
     }
 
+    const HELP_SHORT = 0;
+    const HELP_MEDIUM = 1;
+    const HELP_LONG = 2;
+
     /**
      * Gets the help for all flags (or the specified one).
      * @param iFlag|string $flag
      * @param boolean $short
      * @return string
      */
-    public function getHelp($flag = false, $short = false) {
+    public function getHelp($flag = false, $type = self::HELP_MEDIUM) {
         if ($flag === false) {
             $rtn = "";
             foreach ($this->flags as $iflag) {
                 if ($iflag instanceof iFlag) {
-                    $rtn .= $this->getHelp($iflag, true) . "\n";
+                    $rtn .= " " . $this->getHelp($iflag, $type) . "\n";
                 }
             }
             return $rtn;
         } elseif (($iflag = $this->getFlag($flag)) instanceof iFlag) {
-            $rtn = "/wc flag set <area> " . $iflag->getUsage();
-            $rtn .= $short ? "" : "\n  - " . $iflag->getDescription();
+
+            $rtn = $iflag->getUsage();
+
+            if ($type === self::HELP_MEDIUM) {
+                $rtn = "/wc flag set <area> " . $rtn;
+                if ($type === self::HELP_LONG) {
+                    $rtn .= "\n  - " . $iflag->getDescription();
+                }
+            }
             return $rtn;
         }
     }
@@ -151,93 +168,49 @@ class FlagHelper {
     /**
      * Weather or not a player can edit a flag.
      * @param CommandSender $sender
+     * @param Area|Position $area
      * @param iFlag|string $flag
      * @return boolean
      */
-    public function canEditFlag(CommandSender $sender, $area, $flag) {
+    public function canEditFlag(CommandSender $sender, Area $area, $flag) {
         $iflag = $this->getFlag($flag);
-        if($area instanceof Position) {
-            $area = $this->wCommander->getDataProvider()->getAreaForPosition($area);
-        }
-        if ($iflag === false || !$this->wCommander->getDataProvider()->isValidArea($area)) {
+        if ($iflag === false) {
             return false;
+        }
+        if ($area instanceof Position) {
+            $area = $this->wCommander->getDataManager()->getArea($area);
         }
         return $sender->hasPermission("tschrock.worldcommander.all") ||
                 ($this->wCommander->getConfig()->get(Utilities::CONFIG_OPS) && $sender->isOp()) ||
                 $sender->hasPermission("tschrock.worldcommander.flags") ||
                 $sender->hasPermission("tschrock.worldcommander.flags.edit") ||
                 $sender->hasPermission("tschrock.worldcommander.flag." . $iflag->getName() . ".edit") ||
-                $sender->hasPermission("tschrock.worldcommander.area." . $area . ".edit") ||
-                $sender->hasPermission("tschrock.worldcommander.areaflag." . $area . "." . $iflag->getName() . ".edit");
+                $sender->hasPermission("tschrock.worldcommander.area." . $area->getName() . ".edit") ||
+                $sender->hasPermission("tschrock.worldcommander.areaflag." . $area->getName() . "." . $iflag->getName() . ".edit");
     }
 
     /**
      * Weather or not a player can bypass a flag.
-     * @param CommandSender $sender
+     * @param CommandSender $player
+     * @param Area|Position $area
      * @param iFlag|string $flag
      * @return boolean
      */
-    public function canBypassFlag(CommandSender $sender, $area, $flag) {
-        $iflag = $this->getFlag($flag);
-        if($area instanceof Position) {
-            $area = $this->wCommander->getDataProvider()->getAreaForPosition($area);
-        }
-        if ($iflag === false || !$this->wCommander->getDataProvider()->isValidArea($area)) {
-            return false;
-        }
-        
-        
-        return ($this->wCommander->getConfig()->get(Utilities::CONFIG_EXCLD_WCALL) && $sender->hasPermission("tschrock.worldcommander.all")) ||
-                ($this->wCommander->getConfig()->get(Utilities::CONFIG_EXCLD_OP) && $sender->isOp()) ||
-                $sender->hasPermission("tschrock.worldcommander.flags") ||
-                $sender->hasPermission("tschrock.worldcommander.flags.bypass") ||
-                $sender->hasPermission("tschrock.worldcommander.flag." . $iflag->getName() . ".bypass") ||
-                $sender->hasPermission("tschrock.worldcommander.area." . $area . ".bypass") ||
-                $sender->hasPermission("tschrock.worldcommander.areaflag." . $area . "." . $iflag->getName() . ".bypass");
-    }
-
-    /**
-     * Gets the value of the flag for a specified area.
-     * @param Position|string $area
-     * @param iFlag|string $flag
-     * @return mixed
-     */
-    public function getFlagValue($area, $flag) {
+    public function canBypassFlag(\pocketmine\Player $player, Area $area, $flag) {
         $iflag = $this->getFlag($flag);
         if ($iflag === false) {
             return false;
         }
-
-        $rtn = null;
-
-        $regions = $this->wCommander->getDataProvider()->getRegion($area);
-
-        if ($regions != null) {
-            $rtn = $this->wCommander->getDataProvider()->getRegionFlag(array_shift($regions), $iflag->getName());
-        } else {
-            $rtn = $this->wCommander->getDataProvider()->getWorldFlag($area, $iflag->getName());
+        if ($area instanceof Position) {
+            $area = $this->wCommander->getDataManager()->getArea($area);
         }
-
-        if ($rtn === null) {
-            $rtn = $iflag->getDefaultValue();
-        }
-
-        return $rtn;
+        return ($this->wCommander->getConfig()->get(Utilities::CONFIG_EXCLD_WCALL) && $player->hasPermission("tschrock.worldcommander.all")) ||
+                ($this->wCommander->getConfig()->get(Utilities::CONFIG_EXCLD_OP) && $player->isOp()) ||
+                $player->hasPermission("tschrock.worldcommander.flags") ||
+                $player->hasPermission("tschrock.worldcommander.flags.bypass") ||
+                $player->hasPermission("tschrock.worldcommander.flag." . $iflag->getName() . ".bypass") ||
+                $player->hasPermission("tschrock.worldcommander.area." . $area->getName() . ".bypass") ||
+                $player->hasPermission("tschrock.worldcommander.areaflag." . $area->getName() . "." . $iflag->getName() . ".bypass");
     }
 
-    /**
-     * Sets the value of the flag for a specified area.
-     * @param Position|string $area
-     * @param iFlag|string $flag
-     * @param mixed $value
-     * @return boolean
-     */
-    public function setFlagValue($area, $flag, $value) {
-        $iflag = $this->getFlag($flag);
-        if ($iflag === false) {
-            return false;
-        }
-        
-        return $this->wCommander->getDataProvider()->setFlag($area, $iflag->getName(), $value);
-    }
 }

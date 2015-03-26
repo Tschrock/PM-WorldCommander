@@ -3,6 +3,7 @@
 namespace tschrock\worldcommander\flag;
 
 use \pocketmine\command\CommandSender;
+use tschrock\worldcommander\data\Area;
 
 /**
  *
@@ -52,5 +53,5 @@ interface iFlag {
 
     public function isDisabled();
 
-    public function handleCommand(CommandSender $sender, $area, $args);
+    public function handleCommand(CommandSender $sender, Area $area, $args);
 }

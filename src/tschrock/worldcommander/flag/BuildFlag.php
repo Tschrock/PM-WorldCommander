@@ -9,13 +9,12 @@
 namespace tschrock\worldcommander\flag;
 
 use tschrock\worldcommander\WorldCommander;
+use tschrock\worldcommander\data\Area;
 use pocketmine\plugin\Plugin;
 use pocketmine\Player;
-use pocketmine\Server;
 use pocketmine\command\CommandSender;
 use pocketmine\event\Listener;
 use tschrock\worldcommander\Utilities;
-use tschrock\worldcommander\YMLDataProvider;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\block\Block;
@@ -32,7 +31,7 @@ class BuildFlag extends Flag implements Listener {
         parent::__construct("canbuild"
                 , $wCommander
                 , "Set whether or not people can build in an area."
-                , "canbuild <true|false> [exceptions...]"
+                , "canbuild <true|false|add|remove> [exceptions...]"
                 , array("build")
                 , $owner);
     }
@@ -42,32 +41,30 @@ class BuildFlag extends Flag implements Listener {
     }
 
     public function getDefaultValue() {
-        return null;
+        return array(null, array());
     }
 
-    public function handleCommand(CommandSender $sender, $area, $args) {
+    public function handleCommand(CommandSender $sender, Area $area, $args) {
+        $flagVal = $area->getFlag($this);
         $canBuild = array_shift($args);
-        $exceptionsArr = explode(" ", str_replace(",", " ", implode(" ", $args)));
-
-        if ($canBuild == "add") {
-            $flagVal = $this->wCommander->getFlagHelper()->getFlagValue($area, $this);
-            $excludeList = YMLDataProvider::safeArrayGet($flagVal, 1);
-            $excludeNew = array_merge($excludeList, $exceptionsArr);
-            $flagVal[1] = $excludeNew;
-            $this->wCommander->getDataProvider()->setFlag($area, $this->getName(), $flagVal);
-        } elseif ($canBuild == "remove") {
-            $flagVal = $this->wCommander->getFlagHelper()->getFlagValue($area, $this);
-            $excludeList = YMLDataProvider::safeArrayGet($flagVal, 1);
-            $excludeNew = array_diff($excludeList, $exceptionsArr);
-            $flagVal[1] = $excludeNew;
-            $this->wCommander->getDataProvider()->setFlag($area, $this->getName(), $flagVal);
-        } else {
-            if (($canBuildBool = Utilities::parseBoolean($canBuild)) === null) {
-                $sender->sendMessage("'$canBuild' isn't a correct canbuild value. Must be 'true' or 'false' with an optional exclude list; Or 'add <playerlist>' or 'remove <playerlist>' to change the exclude list.");
-            } else {
-                parent::handleCommand($sender, $area, array($canBuildBool, $exceptionsArr));
-            }
+        $excludeList = explode(" ", str_replace(",", " ", implode(" ", $args)));
+        
+        switch ($canBuild) {
+            case "add":
+                $flagVal[1] = array_merge($flagVal[1], $excludeList);
+            case "rm":
+            case "remove":
+                $flagVal[1] = array_diff($flagVal[1], $excludeList);
+                break;
+            default:
+                if (($canBuildBool = Utilities::parseBoolean($canBuild)) === null) {
+                    $sender->sendMessage("Usage: " . $this->wCommander->getFlagManager()->getHelp($this));
+                } else {
+                    $flagVal = array($canBuildBool, $excludeList);
+                }
+                break;
         }
+        $area->setFlag($this, $flagVal);
     }
 
     /**
@@ -97,34 +94,15 @@ class BuildFlag extends Flag implements Listener {
     }
 
     public function checkBuildPerms(Player $player, Block $block, BlockEvent $event) {
-                
         if ($player->getLevel() != $block->getLevel()) {
             $this->owner->getLogger()->error(
                     "Player '" . $player->getName() . "' in world '" . $player->getLevel()->getName() .
                     "' is trying to edit a block '" . $block->getName() . "' in world '" . $player->getLevel()->getName() . "'");
             return;
         }
-        if (!$this->wCommander->getFlagHelper()->canBypassFlag($player, $block, $this)) {
-            $world = $player->getLevel();
-            $regions = $this->wCommander->getDataProvider()->getRegion($block);
-            $canBuildBool = null;
-
-            //var_dump($regions);
-            
-            foreach ($regions as $area) {
-                $canBuildVal = $this->wCommander->getFlagHelper()->getFlagValue($area, $this);
-                $canBuildBool = YMLDataProvider::safeArrayGet($canBuildVal, 0);
-                if ($canBuildBool !== null) {
-                    break;
-                }
-            }
-
-            if ($canBuildBool === null) {
-                $canBuildVal = $this->wCommander->getFlagHelper()->getFlagValue($world->getName(), $this);
-                $canBuildBool = YMLDataProvider::safeArrayGet($canBuildVal, 0);
-            }
-
-            if ($canBuildBool === false) {
+        if (!$this->wCommander->getFlagManager()->canBypassFlag($player, $block, $this)) {
+            $flagValue = $this->wCommander->getDataManager()->getArea($block)->getFlag($this);
+            if ($flagValue[0] === false && !in_array($player->getName(), $flagValue[1])) {
                 $player->sendMessage("You're not allowed to build here!");
                 $event->setCancelled();
                 return false;

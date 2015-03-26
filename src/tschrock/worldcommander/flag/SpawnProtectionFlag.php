@@ -9,14 +9,13 @@
 namespace tschrock\worldcommander\flag;
 
 use tschrock\worldcommander\WorldCommander;
+use tschrock\worldcommander\data\Area;
 use pocketmine\plugin\Plugin;
 use pocketmine\Player;
 use pocketmine\block\Block;
-use pocketmine\Server;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\block\BlockEvent;
-use tschrock\worldcommander\Utilities;
 use pocketmine\command\CommandSender;
 use pocketmine\event\Listener;
 use pocketmine\math\Vector2;
@@ -42,10 +41,10 @@ class SpawnProtectionFlag extends Flag implements Listener {
     }
 
 
-    public function handleCommand(CommandSender $sender, $area, $args) {
-        $radius = implode(" ", $args);
+    public function handleCommand(CommandSender $sender, Area $area, $args) {
+        $radius = array_shift($args);
         if (!is_numeric($radius)) {
-            $sender->sendMessage("'$radius' isn't a correct spawnprotection value. Must be a radius.");
+            $sender->sendMessage("Spawnprotection radius must be a number!");
         } else {
             $radiusNum = intval($radius);
             parent::handleCommand($sender, $area, $radiusNum);
@@ -86,12 +85,12 @@ class SpawnProtectionFlag extends Flag implements Listener {
     }
     
     public function checkSpawnProtection(Player $player, Block $block, BlockEvent $event){
-        if (!$this->wCommander->getFlagHelper()->canBypassFlag($player, $block, $this)) {
-            $world = $player->getLevel();
-            $protRadius = $this->wCommander->getFlagHelper()->getFlagValue($player, $this);
+        if (!$this->wCommander->getFlagManager()->canBypassFlag($player, $block, $this)) {
+            $level = $player->getLevel();
+            $protRadius = $this->wCommander->getDataManager()->getWorld($player)->getFlag($this);
             if ($protRadius > -1) {
                 $target = new Vector2($block->x, $block->z);
-                $source = new Vector2($world->getSpawn()->x, $world->getSpawn()->z);
+                $source = new Vector2($level->getSpawn()->x, $level->getSpawn()->z);
                 if ($target->distance($source) <= $protRadius) {
                     $player->sendMessage("You are not allowed to edit blocks near spawn!");
                     $event->setCancelled();

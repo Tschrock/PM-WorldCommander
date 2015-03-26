@@ -9,9 +9,8 @@
 namespace tschrock\worldcommander\flag;
 
 use tschrock\worldcommander\WorldCommander;
+use tschrock\worldcommander\data\Area;
 use pocketmine\plugin\Plugin;
-use pocketmine\Player;
-use pocketmine\Server;
 use tschrock\worldcommander\Utilities;
 use pocketmine\command\CommandSender;
 
@@ -35,7 +34,7 @@ class TimeFlag extends Flag {
         return null;
     }
     
-    public function handleCommand(CommandSender $sender, $area, $args)
+    public function handleCommand(CommandSender $sender, Area $area, $args)
     {
         parent::handleCommand($sender, $area, implode(" ", $args));
     }

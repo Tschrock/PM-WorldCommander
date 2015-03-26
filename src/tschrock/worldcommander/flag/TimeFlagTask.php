@@ -27,11 +27,10 @@ class TimeFlagTask extends PluginTask {
         }
     }
 
-    public function updateWorldTime(\pocketmine\level\Level $world, $currentTick) {
-        $timeData = $this->owner->getFlagHelper()->getFlagValue($world->getName(), $this->flag);
+    public function updateWorldTime(\pocketmine\level\Level $level, $currentTick) {
+        $timeData = $this->owner->getDataManager()->getWorld($level)->getFlag($this->flag);
         if ($timeData !== null) {
-            $time = $this->calculateTime($timeData, $currentTick, $world->getTime());
-            $world->setTime($time);
+            $level->setTime($this->calculateTime($timeData, $currentTick, $level->getTime()));
         }
     }
 
